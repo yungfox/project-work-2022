@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApplicativoSalvataggioMongoeCoda
+namespace ApplicativoSalvataggioMongoeCoda.Models
 {
     class Piazzola
     {
@@ -15,6 +15,6 @@ namespace ApplicativoSalvataggioMongoeCoda
         public int IdPiano { get; set; }
         public int IdPiazzola { get; set; }
         public DateTime Orario { get; set; }
-        public Boolean Stato { get; set; }
+        public bool Stato { get; set; }
     }
 }

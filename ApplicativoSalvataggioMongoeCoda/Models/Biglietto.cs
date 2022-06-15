@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 
-namespace ApplicativoSalvataggioMongoeCoda
+namespace ApplicativoSalvataggioMongoeCoda.Models
 {
     class Biglietto
     {
@@ -11,6 +11,6 @@ namespace ApplicativoSalvataggioMongoeCoda
         public DateTime OrarioEntrata { get; set; }
         public DateTime OrarioPagamento { get; set; }
         public DateTime OrarioUscita { get; set; }
-        public Double Prezzo { get; set; }
+        public double Prezzo { get; set; }
     }
 }

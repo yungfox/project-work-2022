@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApplicativoSalvataggioMongoeCoda
+namespace ApplicativoSalvataggioMongoeCoda.Models
 {
     class Prezzi
     {

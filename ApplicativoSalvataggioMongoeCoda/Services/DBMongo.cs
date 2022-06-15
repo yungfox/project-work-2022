@@ -31,30 +31,33 @@ namespace ApplicativoSalvataggioMongoeCoda
             };
             collection.InsertOne(myBiglietto);
         }
-        public void PrendiValore()
+        public float Pagamento(string IDBiglietto, DateTime orariopagamento)
         {
             var collection = dbParcheggio.GetCollection<Biglietto>("Biglietti");
-            var filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", "55555555");
-            var document = collection.Find(filter).First();
-            Console.WriteLine(document.IdBiglietto);
-            Console.WriteLine(document.OrarioEntrata);
-        }
-        public void Pagamento(string IDBiglietto, DateTime orariopagamento)
-        {
-            var collection  = dbParcheggio.GetCollection<Biglietto>("Biglietti");
             //calcolo quanto tempo è passato da quando sono entrato a quando voglio pagare
             var filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDBiglietto);
             var document = collection.Find(filter).First();
-            System.TimeSpan diff = orariopagamento.Subtract(document.OrarioEntrata);
+            System.TimeSpan diff;
+            if (document.OrarioPagamento == Convert.ToDateTime("0001-01-01T00:00:00.000+00:00"))
+            {
+                //se l'orario pagamento non è mai stato istanziato allora calcolo
+                diff = orariopagamento.Subtract(document.OrarioEntrata);
+            }
+            else
+            {
+                //se invece è già istanziato vuol dire che l'utente ha già pagato una volta ma ci ha messo troppo tempo ad arrivare all'uscita
+                diff = orariopagamento.Subtract(document.OrarioPagamento);
+            }
             //prendo i prezzi odierni
-            Console.WriteLine("mi connetto al secondo db");
             var collection2 = dbParcheggio.GetCollection<Prezzi>("Prezzi");
             var filter2 = Builders<Prezzi>.Filter.Eq("id", 1);
             var document2 = collection2.Find(filter2).First();
-            Console.WriteLine("mezzora: "+document2.mezzora);
             float prezzo = 0;
             switch (diff.TotalMinutes)
             {
+                case <= 15:
+                    prezzo = 0;
+                    break;
                 case <= 30:
                     prezzo = document2.mezzora;
                     break;
@@ -76,15 +79,26 @@ namespace ApplicativoSalvataggioMongoeCoda
             filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDBiglietto);
             var update = Builders<Biglietto>.Update.Set("OrarioPagamento", orariopagamento);
             collection.UpdateOne(filter, update);
-            update = Builders<Biglietto>.Update.Set("Prezzo", prezzo);
+            update = Builders<Biglietto>.Update.Set("Prezzo", prezzo + document.Prezzo);
             collection.UpdateOne(filter, update);
+            return prezzo;
         }
-        public void Uscita(string IDBiglietto, DateTime orariouscita)
+        public bool Uscita(string IDBiglietto, DateTime orariouscita)
         {
             var collection = dbParcheggio.GetCollection<Biglietto>("Biglietti");
+            //calcolo quanto tempo è passato da quando il cliente ha pagato a quando è arrivato alla sbarra
             var filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDBiglietto);
-            var update = Builders<Biglietto>.Update.Set("OrarioUscita", orariouscita);
-            collection.UpdateOne(filter, update);
+            var document = collection.Find(filter).First();
+            System.TimeSpan diff = orariouscita.Subtract(document.OrarioPagamento);
+            //se sono passati meno di 15 minuti il cliente può uscire
+            if (diff.TotalMinutes <= 15)
+            {
+                filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDBiglietto);
+                var update = Builders<Biglietto>.Update.Set("OrarioUscita", orariouscita);
+                collection.UpdateOne(filter, update);
+                return true;
+            }
+            return false;
         }
         public void AggiornaCosti(string tempistica, float prezzodaaggiornare)
         {
@@ -95,17 +109,24 @@ namespace ApplicativoSalvataggioMongoeCoda
         }
         public void CreaCosti()
         {
-            var collection = dbParcheggio.GetCollection<Prezzi>("Prezzi");
-            Prezzi myBiglietto = new Prezzi
+            try
             {
-                id = 1,
-                mezzora = 0,
-                unora = 0,
-                treore = 0,
-                seiore = 0,
-                giornaliero = 0
-            };
-            collection.InsertOne(myBiglietto);
+                var collection = dbParcheggio.GetCollection<Prezzi>("Prezzi");
+                Prezzi myBiglietto = new Prezzi
+                {
+                    id = 1,
+                    mezzora = 0,
+                    unora = 0,
+                    treore = 0,
+                    seiore = 0,
+                    giornaliero = 0
+                };
+                collection.InsertOne(myBiglietto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }            
         }
     }
 }

@@ -1,29 +1,25 @@
 ﻿using System;
+using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 namespace ApplicativoSalvataggioMongoeCoda
 {
     class Program
     {
+        DBMongo dBMongo = new DBMongo();
         static void Main(string[] args)
         {
-            Connetti();
-        }
+            //InserisciEntrata();
+            DBMongo mydBMongo = new();
 
-        static void Connetti()
-        {
-            var dbParcheggio = new MongoClient("mongodb://127.0.0.1:27017");
-            var dbList = dbParcheggio.ListDatabases().ToList();
+            //mydBMongo.Entrata("1111", Convert.ToDateTime("2022-06-15T11:19:35.397+00:00"));
+            mydBMongo.Pagamento("1111", Convert.ToDateTime("2022-06-15T11:21:35.397+00:00"));
+            //mydBMongo.Uscita("1111", Convert.ToDateTime("2022-06-15T11:19:35.397+00:00"));
 
-            Console.WriteLine("The list of databases are:");
-
-            foreach (var item in dbList)
-            {
-                Console.WriteLine(item);
-            }
-        }
-        
+            //mydBMongo.AggiornaCosti("mezzora",125);
+        }        
     }
 }

@@ -4,7 +4,7 @@ using System;
 
 namespace ApplicativoSalvataggioMongoeCoda
 {
-    class Schema
+    class Biglietto
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Newtonsoft.Json;
-using ApplicativoSalvataggioMongoeCoda.Models;
+using Microsoft.Azure.Devices;
 
 namespace ApplicativoSalvataggioMongoeCoda.Services
 {
@@ -15,6 +15,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
         private readonly string coda;
         private IConnection connection;
         private IModel channel;
+        private ServiceClient azureClient;
 
         public QueueService(string req_url, string coda)
         {
@@ -30,6 +31,8 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         autoDelete: false,
                         arguments: null
                     );
+
+            azureClient = ServiceClient.CreateFromConnectionString(Secrets.AZURE_CONNECTION_STRING);
 
             Console.WriteLine("connesso!");
         }
@@ -71,6 +74,8 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                     Console.WriteLine($"new message from exchange {args.Exchange}: {message}");
 
                     await WriteOnDbAsync(message, args);
+
+                    await WriteOnCloud(message);
                     //channel.BasicAck(args.DeliveryTag, false);      // DEBUG - COMMENTA SE WRITEONDBASYNC È DECOMMENTATO!!!!!!
                 }
                 catch (Exception ex)
@@ -92,7 +97,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             {
                 if(args.Exchange == "Biglietti")
                 {
-                    BigliettoMongo biglietto = JsonConvert.DeserializeObject<BigliettoMongo>(payload);
+                    MongoTicket biglietto = JsonConvert.DeserializeObject<MongoTicket>(payload);
 
                     using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
                     using (SqlCommand cmd = new SqlCommand()
@@ -115,15 +120,41 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         if (result > 0)
                         {
                             channel.BasicAck(args.DeliveryTag, false);
-                            Console.WriteLine("successfully inserted the record on db!");
+                            Console.WriteLine("successfully inserted the ticket on db!");
                         }
                     }
                 }
-                else
+                else if(args.Exchange == "Piazzole")
                 {
-                    Console.WriteLine("aha! new message from exchange Piazzole detected");
+                    MongoParkingSpot spot = JsonConvert.DeserializeObject<MongoParkingSpot>(payload);
+
+                    using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
+                    using (SqlCommand cmd = new SqlCommand()
+                    {
+                        Connection = con,
+                        CommandType = System.Data.CommandType.Text,
+                        CommandText = $"UPDATE tblPiazzole SET Orario='{spot.Orario}', Stato='{spot.Stato}' WHERE Id={spot._id}"
+                    })
+                    {
+                        con.Open();
+
+                        int result = cmd.ExecuteNonQuery();
+
+                        if (result > 0)
+                        {
+                            channel.BasicAck(args.DeliveryTag, false);
+                            Console.WriteLine("successfully updated the parking spot on db!");
+                        }
+                    }
                 }
             });
+        }
+
+        #region UTILITY CLASSES
+        private async Task WriteOnCloud(string payload)
+        {
+            Message message = new Message(Encoding.UTF8.GetBytes(payload));
+            await azureClient.SendAsync("Parcheggio", message);
         }
 
         private class OrarioEntrata
@@ -144,7 +175,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             public DateTime Date { get; set; }
         }
 
-        private class BigliettoMongo
+        private class MongoTicket
         {
             public string _id { get; set; }
             public OrarioEntrata OrarioEntrata { get; set; }
@@ -152,5 +183,25 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             public OrarioUscita OrarioUscita { get; set; }
             public int Prezzo { get; set; }
         }
+
+        private class Date
+        {
+            [JsonProperty("$numberLong")]
+            public string NumberLong { get; set; }
+        }
+
+        private class Orario
+        {
+            [JsonProperty("$date")]
+            public Date Date { get; set; }
+        }
+
+        private class MongoParkingSpot
+        {
+            public string _id { get; set; }
+            public Orario Orario { get; set; }
+            public bool Stato { get; set; }
+        }
+        #endregion
     }
 }

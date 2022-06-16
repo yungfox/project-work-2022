@@ -5,7 +5,7 @@
 #include <secret.h>
 
 
-#define Francesco 14
+#define Button 14
 /* #region   */
 
 // initialize constants
@@ -23,7 +23,7 @@ PubSubClient client(espClient);
 void setup()
 {
   Serial.begin(9600);
-  pinMode(Francesco,INPUT);
+  pinMode(Button,INPUT);
 
   // mi connetto al wifi
   WiFi.begin(SSID, PASSWORD);
@@ -77,7 +77,7 @@ void InviaDati()
 void loop()
 {
 
-  if (digitalRead(Francesco) == HIGH)
+  if (digitalRead(Button) == HIGH)
   {
     Serial.println("INVIOOO");
 

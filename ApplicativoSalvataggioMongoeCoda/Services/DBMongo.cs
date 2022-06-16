@@ -188,7 +188,7 @@ namespace ApplicativoSalvataggioMongoeCoda
             });
         }
 
-        public Task Piazzola(string ID, Boolean Status)
+        public Task UpdateParkingSpot(string ID, Boolean Status)
         {
             return Task.Run(() =>
             {

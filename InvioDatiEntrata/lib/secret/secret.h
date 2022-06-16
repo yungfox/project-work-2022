@@ -1,0 +1,6 @@
+#define WIFI_SSID "Tu_wi-fi_americano"
+#define WIFI_PASSWORD "password1234"
+//#define HOST_ADDRESS "test.mosquitto.org"
+#define HOST_ADDRESS "192.168.137.77"
+#define MQTT_TOPIC "InviaMqtttulio"
+//#define MQTT_TOPIC "InviaMqtttulio"

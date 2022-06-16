@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
-using Newtonsoft.Json;
 using ApplicativoSalvataggioMongoeCoda.Services;
 
 namespace ApplicativoSalvataggioMongoeCoda
@@ -13,17 +8,13 @@ namespace ApplicativoSalvataggioMongoeCoda
         DBMongo dBMongo = new DBMongo();
         static void Main(string[] args)
         {
-            //InserisciEntrata();
-            //DBMongo mydBMongo = new();
-
-            //mydBMongo.Entrata("1111", Convert.ToDateTime("2022-06-15T11:19:35.397+00:00"));
-            //mydBMongo.Pagamento("1111", Convert.ToDateTime("2022-06-15T11:21:35.397+00:00"));
-            //mydBMongo.Uscita("1111", Convert.ToDateTime("2022-06-15T11:19:35.397+00:00"));
-
-            //mydBMongo.AggiornaCosti("mezzora",125);
-
             MqttService mqtt = new MqttService("localhost", "#");
             mqtt.Subscribe();
+
+            //string test = $"{{\"_id\":\"55555555\",\"OrarioEntrata\":{{\"$date\":\"2022-06-15T11:19:35.397Z\"}},\"OrarioPagamento\":{{\"$date\":\"2022-06-15T11:21:35.398Z\"}},\"OrarioUscita\":{{\"$date\":\"1970-01-01T00:00:00.000Z\"}},\"Prezzo\":90}}";
+
+            //QueueService queue = new QueueService("localhost", "Parcheggio");
+            //queue.Send(test, "Biglietti");
 
             Console.ReadLine();
         }

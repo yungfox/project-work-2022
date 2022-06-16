@@ -45,10 +45,11 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
                 client.UseApplicationMessageReceivedHandler(e =>
                 {
+                    //var mqttclient = e.ClientId;
                     var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
                     var message_topic = e.ApplicationMessage.Topic;
 
-                    Console.WriteLine($"new message from topic {message_topic}: {payload}");
+                    Console.WriteLine($"new message from {e.ClientId} on topic {message_topic}: {payload}");
                 });
 
                 client.ConnectAsync(options).Wait();

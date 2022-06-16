@@ -122,7 +122,9 @@ namespace ApplicativoSalvataggioMongoeCoda
                         filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDTicket);
                         var update = Builders<Biglietto>.Update.Set("OrarioUscita", exitime);
                         collection.UpdateOne(filter, update);
-                        return true;
+                        //non è necessario scrivere l'uscita visto che viene cancellata subito
+                        DeleteRecordTicket(IDTicket);
+                        return true;                        
                     }
                     //in caso contrario dovrà tornare al totem e pagare
                     return false;
@@ -206,7 +208,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
-        public Task CreatePiazzole()
+        public Task CreateParkingSpot()
         {
             return Task.Run(() =>
             {

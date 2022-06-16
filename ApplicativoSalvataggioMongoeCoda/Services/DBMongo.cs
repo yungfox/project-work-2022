@@ -93,9 +93,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                             break;
                     }
                     filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDTicket);
-                    var update = Builders<Biglietto>.Update.Set("OrarioPagamento", paymentime);
-                    collection.UpdateOne(filter, update);
-                    update = Builders<Biglietto>.Update.Set("Prezzo", price + document.Prezzo);
+                    var update = Builders<Biglietto>.Update.Set("OrarioPagamento", paymentime).Set("Prezzo", price + document.Prezzo);
                     collection.UpdateOne(filter, update);
                     return price;
                 }
@@ -163,7 +161,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     var collection = dbParcheggio.GetCollection<Prezzi>("Prezzi");
                     var filter = Builders<Prezzi>.Filter.Eq("id", 1);
                     var update = Builders<Prezzi>.Update.Set(timing, billtoupdate);
-                    collection.UpdateMany(filter, update);
+                    collection.UpdateOne(filter, update);
                 }
                 catch (Exception ex)
                 {
@@ -171,7 +169,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
-        public Task<Boolean> DeleteRecord(string IDTicket)
+        public Task<Boolean> DeleteRecordTicket(string IDTicket)
         {
             return Task.Run(() =>
             {
@@ -187,6 +185,97 @@ namespace ApplicativoSalvataggioMongoeCoda
                     Console.WriteLine(ex.Message);
                     return false;
                 }
+            });
+        }
+
+        public Task Piazzola(string ID, Boolean Status)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var time = DateTime.UtcNow;
+                    var collection = dbParcheggio.GetCollection<Piazzola>("Piazzole");
+                    var filter = Builders<Piazzola>.Filter.Eq("_id", ID);
+                    var update = Builders<Piazzola>.Update.Set("Stato", Status).Set("Orario",time);
+                    collection.UpdateOne(filter, update);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            });
+        }
+        public Task CreatePiazzole()
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var collection = dbParcheggio.GetCollection<Piazzola>("Piazzole");
+                    if (collection.Count(_ => true) == 0)
+                    {
+                        for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 50; j++)
+                            {
+                                Piazzola myPiazzola;
+                                if (j<10)
+                                {
+                                    myPiazzola = new()
+                                    {
+                                        Id = i + "0" + j,
+                                        IdPiano = i,
+                                        IdPiazzola = j
+                                    };
+                                }
+                                else
+                                {
+                                    myPiazzola = new()
+                                    {
+                                        Id = i + "" + j,
+                                        IdPiano = i,
+                                        IdPiazzola = j
+                                    };
+                                }
+                                collection.InsertOne(myPiazzola);
+                            }
+                        }
+                        Console.WriteLine("finito creazione");
+                    }
+                    else
+                    {
+                        Console.WriteLine("database già popolato"); 
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            });
+        }
+        public Task DropTable()
+        {
+            return Task.Run(() =>
+            {
+                var collection = dbParcheggio.GetCollection<Piazzola>("Piazzole");
+                for (int i = 0; i < 2; i++)
+                {
+                    for (int j = 0; j < 50; j++)
+                    {
+                        if (j < 10)
+                        {
+                            var deleteFilter = Builders<Piazzola>.Filter.Eq("_id", i + "0" + j);
+                            collection.DeleteOne(deleteFilter);
+                        }
+                        else
+                        {
+                            var deleteFilter = Builders<Piazzola>.Filter.Eq("_id", i + "" + j);
+                            collection.DeleteOne(deleteFilter);
+                        }
+                    }
+                }
+                Console.WriteLine("finito eliminazione");
             });
         }
     }

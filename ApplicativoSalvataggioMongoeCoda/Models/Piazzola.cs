@@ -11,10 +11,10 @@ namespace ApplicativoSalvataggioMongoeCoda.Models
     class Piazzola
     {
         [BsonId]
-        public int Id { get; set; }
+        public string Id { get; set; }
         public int IdPiano { get; set; }
         public int IdPiazzola { get; set; }
         public DateTime Orario { get; set; }
-        public bool Stato { get; set; }
+        public Boolean Stato { get; set; }
     }
 }

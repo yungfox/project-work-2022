@@ -154,7 +154,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
-        public Task UpdateBilling(string timing, float billtoupdate)
+        public Task UpdateBilling(Prezzi myPrezzi)
         {
             return Task.Run(() =>
             {
@@ -162,7 +162,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 {
                     var collection = dbParcheggio.GetCollection<Prezzi>("Prezzi");
                     var filter = Builders<Prezzi>.Filter.Eq("id", 1);
-                    var update = Builders<Prezzi>.Update.Set(timing, billtoupdate);
+                    var update = Builders<Prezzi>.Update.Set("mezzora", myPrezzi.mezzora).Set("unora",myPrezzi.unora).Set("treore", myPrezzi.treore).Set("seiore", myPrezzi.seiore).Set("giornaliero", myPrezzi.giornaliero);
                     collection.UpdateOne(filter, update);
                 }
                 catch (Exception ex)

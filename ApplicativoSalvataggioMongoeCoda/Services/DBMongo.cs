@@ -31,9 +31,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     Ticket myTicket = new()
                     {
                         IdTicket = IDTicket,
-                        EntryTime = entrytime,
-                        ExitTime = Convert.ToDateTime("1970 - 01 - 01 00:00:00.000"),
-                        PaymentTime = Convert.ToDateTime("1970-01-01 00:00:00.000")
+                        EntryTime = entrytime
                     };
                     collection.InsertOne(myTicket);
                     return true;
@@ -43,7 +41,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     Console.WriteLine(ex.Message);
                     return false;
                 }
-            });  
+            });
         }
         public Task<dynamic> Payment(string IDTicket, DateTime paymentime)
         {
@@ -57,7 +55,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     var filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                     var document = collection.Find(filter).First();
                     System.TimeSpan diff;
-                    if (DateTime.Compare(document.PaymentTime, Convert.ToDateTime("1971-01-01T00:00:00.000+00:00")) <= 0)
+                    if (DateTime.Compare(document.PaymentTime, Convert.ToDateTime("1970-01-01T00:00:00.000+00:00")) < 0)
                     {
                         //se l'orario pagamento non è mai stato istanziato allora calcolo
                         diff = paymentime.Subtract(Convert.ToDateTime(document.EntryTime));
@@ -120,7 +118,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     var document = collection.Find(filter).First();
                     System.TimeSpan diff = exitime.Subtract(document.PaymentTime);
                     //se sono passati meno di 15 minuti dal pagamento il cliente può uscire
-                    
+
                     if (diff.TotalMinutes <= 15)
                     {
                         Console.WriteLine("sotto i 15 min");
@@ -129,7 +127,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                         var queryResult = collection.UpdateOne(filter, update);
                         //non è necessario scrivere l'uscita visto che viene cancellata subito
                         //DeleteRecordTicket(IDTicket);
-                        return true;                
+                        return true;
                     }
                     return false;
                 }
@@ -138,7 +136,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     Console.WriteLine(ex);
                     return false;
                 }
-            });        
+            });
         }
         public Task<float> GetPrice(string IDTicket)
         {
@@ -167,7 +165,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     var collection = dbParking.GetCollection<Billing>("Billing");
                     var filter = Builders<Billing>.Filter.Eq("id", 1);
                     var update = Builders<Billing>.Update.Set("halfanhour", myBill.halfanhour)
-                                                    .Set("onehour",myBill.onehour)
+                                                    .Set("onehour", myBill.onehour)
                                                     .Set("threehours", myBill.threehours)
                                                     .Set("sixhours", myBill.sixhours)
                                                     .Set("daily", myBill.daily);
@@ -206,7 +204,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 {
                     var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
                     var filter = Builders<ParkingSpot>.Filter.Eq("_id", ID);
-                    var update = Builders<ParkingSpot>.Update.Set("Status", Status).Set("Timestamp",time);
+                    var update = Builders<ParkingSpot>.Update.Set("Status", Status).Set("Timestamp", time);
                     collection.UpdateOne(filter, update);
                 }
                 catch (Exception ex)
@@ -248,14 +246,13 @@ namespace ApplicativoSalvataggioMongoeCoda
                             for (int j = 0; j < 50; j++)
                             {
                                 ParkingSpot myParkingSpot;
-                                if (j<10)
+                                if (j < 10)
                                 {
                                     myParkingSpot = new()
                                     {
                                         Id = i + "0" + j,
                                         IdFloor = i,
-                                        IdParkingSpot = j,
-                                        Timestamp = Convert.ToDateTime("1970-01-01 00:00:00.000")
+                                        IdParkingSpot = j
                                     };
                                 }
                                 else
@@ -274,7 +271,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     }
                     else
                     {
-                        Console.WriteLine("database già popolato"); 
+                        Console.WriteLine("database già popolato");
                     }
                 }
                 catch (Exception ex)
@@ -311,7 +308,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
-                } 
+                }
             });
         }
     }

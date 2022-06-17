@@ -21,13 +21,12 @@ namespace ApplicativoSalvataggioMongoeCoda
             this.dbParking = client.GetDatabase("Parking");
         }
 
-        public Task<bool> Entry(string IDTicket)
+        public Task<bool> Entry(string IDTicket, DateTime entrytime)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var entrytime = DateTime.UtcNow;
                     var collection = dbParking.GetCollection<Ticket>("Ticket");
                     Ticket myTicket = new()
                     {
@@ -44,14 +43,13 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });  
         }
-        public Task<dynamic> Payment(string IDTicket)
+        public Task<dynamic> Payment(string IDTicket, DateTime paymentime)
         {
             return Task.Run(() =>
             {
                 dynamic res;
                 try
                 {
-                    var paymentime = DateTime.UtcNow;
                     var collection = dbParking.GetCollection<Ticket>("Ticket");
                     //calcolo quanto tempo è passato da quando sono entrato a quando voglio pagare
                     var filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
@@ -108,13 +106,12 @@ namespace ApplicativoSalvataggioMongoeCoda
                 return res;
             });
         }
-        public Task<bool> Exit(string IDTicket)
+        public Task<bool> Exit(string IDTicket, DateTime exitime)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var exitime = DateTime.UtcNow;
                     var collection = dbParking.GetCollection<Ticket>("Ticket");
                     //calcolo quanto tempo è passato da quando il cliente ha pagato a quando è arrivato alla sbarra
                     var filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
@@ -199,13 +196,12 @@ namespace ApplicativoSalvataggioMongoeCoda
             });
         }
         //Aggiorna lo stato e la data di una piazzola specifica
-        public Task UpdateParkingSpot(string ID, Boolean Status)
+        public Task UpdateParkingSpot(string ID, Boolean Status, DateTime time)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var time = DateTime.UtcNow;
                     var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
                     var filter = Builders<ParkingSpot>.Filter.Eq("_id", ID);
                     var update = Builders<ParkingSpot>.Update.Set("Status", Status).Set("Timestamp",time);

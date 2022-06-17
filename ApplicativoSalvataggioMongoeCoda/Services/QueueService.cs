@@ -6,6 +6,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Newtonsoft.Json;
 using Microsoft.Azure.Devices;
+using ApplicativoSalvataggioMongoeCoda.Models.Messages;
 
 namespace ApplicativoSalvataggioMongoeCoda.Services
 {
@@ -34,23 +35,26 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
             azureClient = ServiceClient.CreateFromConnectionString(Secrets.AZURE_CONNECTION_STRING);
 
-            Console.WriteLine("connesso!");
+            Console.WriteLine("connected to the amqp queue!");
         }
 
-        public void Send(string dati, string exchange)
+        public Task Send(string dati, string exchange)
         {
-            channel.ExchangeDeclare(exchange: exchange, type: ExchangeType.Topic);
+            return Task.Run(() =>
+            {
+                channel.ExchangeDeclare(exchange: exchange, type: ExchangeType.Topic);
 
-            channel.QueueBind(coda, exchange, "def", null);
+                channel.QueueBind(coda, exchange, "def", null);
 
-            var message = dati;
-            var body = Encoding.UTF8.GetBytes(message);
-            channel.BasicPublish(
-                        exchange: exchange,
-                        routingKey: "def",
-                        basicProperties: null,
-                        body: body
-                    );
+                var message = dati;
+                var body = Encoding.UTF8.GetBytes(message);
+                channel.BasicPublish(
+                            exchange: exchange,
+                            routingKey: "def",
+                            basicProperties: null,
+                            body: body
+                        );
+            });
         }
 
         public void Subscribe(string coda)
@@ -107,9 +111,12 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         {
                             Connection = con,
                             CommandType = System.Data.CommandType.Text,
-                            CommandText = $"INSERT INTO tblTicket (IdTicket, EntryTime) VALUES ('{entry._id}', '{entry.entryTime}')"
+                            CommandText = "INSERT INTO tblTicket (IdTicket, EntryTime) VALUES (@id, @time)"
                         })
                         {
+                            cmd.Parameters.AddWithValue("id", entry._id);
+                            cmd.Parameters.AddWithValue("time", entry.entryTime);
+
                             con.Open();
 
                             int result = cmd.ExecuteNonQuery();
@@ -128,9 +135,13 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         {
                             Connection = con,
                             CommandType = System.Data.CommandType.Text,
-                            CommandText = $"UPDATE tblTicket SET PaymentTime='{payment.paymentTime}', Bill='{payment.bill}' WHERE IdTicket='{payment._id}'"
+                            CommandText = "UPDATE tblTicket SET PaymentTime=@time, Bill=@bill WHERE IdTicket=@time"
                         })
                         {
+                            cmd.Parameters.AddWithValue("id", payment._id);
+                            cmd.Parameters.AddWithValue("time", payment.paymentTime);
+                            cmd.Parameters.AddWithValue("bill", payment.bill);
+
                             con.Open();
 
                             int result = cmd.ExecuteNonQuery();
@@ -149,9 +160,12 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         {
                             Connection = con,
                             CommandType = System.Data.CommandType.Text,
-                            CommandText = $"UPDATE tblTicket SET ExitTime='{exit.exitTime}' WHERE IdTicket='{exit._id}'"
+                            CommandText = $"UPDATE tblTicket SET ExitTime=@time WHERE IdTicket=@id"
                         })
                         {
+                            cmd.Parameters.AddWithValue("id", exit._id);
+                            cmd.Parameters.AddWithValue("exit", exit.exitTime);
+
                             con.Open();
 
                             int result = cmd.ExecuteNonQuery();
@@ -170,9 +184,13 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         {
                             Connection = con,
                             CommandType = System.Data.CommandType.Text,
-                            CommandText = $"UPDATE tblPiazzole SET Timestamp='{spot.timestamp}', Status='{spot.taken}' WHERE Id='{spot._id}'"
+                            CommandText = $"UPDATE tblPiazzole SET Timestamp=@time, Status=@status WHERE Id=@id"
                         })
                         {
+                            cmd.Parameters.AddWithValue("id", spot._id);
+                            cmd.Parameters.AddWithValue("status", spot.taken);
+                            cmd.Parameters.AddWithValue("time", spot.timestamp);
+
                             con.Open();
 
                             int result = cmd.ExecuteNonQuery();
@@ -189,39 +207,11 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                 }
             });
         }
+
         private async Task WriteOnCloud(string payload)
         {
             Message message = new Message(Encoding.UTF8.GetBytes(payload));
             await azureClient.SendAsync("Parcheggio", message);
         }
-
-        #region UTILITY CLASSES
-        private class EntryMessage
-        {
-            public string _id { get; set; }
-            public DateTime entryTime { get; set; }
-        }
-
-        private class PaymentMessage
-        {
-            public string _id { get; set; }
-            public DateTime paymentTime { get; set; }
-            public float bill { get; set; }
-        }
-
-        private class ExitMessage
-        {
-            public string _id { get; set; }
-            public DateTime exitTime { get; set; }
-        }
-
-        private class ParkingSpotMessage
-        {
-            public string _id { get; set; }
-            public bool taken { get; set; }
-            public DateTime timestamp { get; set; }
-        }
-        
-        #endregion
     }
 }

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
+using ApplicativoSalvataggioMongoeCoda.Models.Messages;
 
 namespace ApplicativoSalvataggioMongoeCoda.Services
 {
@@ -29,9 +27,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                                 .Build();
 
             this.topic = topic;
-
             this.db = new DBMongo();
-
             this.queue = new QueueService("localhost", "Parking");
         }
 
@@ -52,13 +48,13 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             {
                 client.UseConnectedHandler(e =>
                 {
-                    Console.WriteLine("connected to the broker");
+                    Console.WriteLine("connected to the mqtt broker!");
                     client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(topic).Build()).Wait();
                 });
 
                 client.UseDisconnectedHandler(e =>
                 {
-                    Console.WriteLine("disconnected from the broker");
+                    Console.WriteLine("disconnected from the mqtt broker!");
                 });
 
                 client.UseApplicationMessageReceivedHandler(async e =>
@@ -66,23 +62,57 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                     var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
 
                     Console.WriteLine($"new message from {e.ClientId} on topic {e.ApplicationMessage.Topic}: {payload}");
-                    IncomingMessage message = JsonConvert.DeserializeObject<IncomingMessage>(payload);
+                    GenericMessage message = JsonConvert.DeserializeObject<GenericMessage>(payload);
 
                     var now = DateTime.UtcNow;
 
                     switch (message.Dispositivo)
                     {
                         case "ESP32Uscita":
-                            await db.Exit(message._id, now);
+                            bool exitResult = await db.Exit(message._id, now);
+                            if (exitResult)
+                            {
+                                ExitMessage exit = new ExitMessage()
+                                {
+                                    _id = message._id,
+                                    exitTime = now
+                                };
+                                string exitJson = JsonConvert.SerializeObject(exit);
+
+                                await queue.Send(exitJson, "Exit");
+                            }
                             break;
                         case "ESP32Entrata":
-                            var res = await db.Entry(message._id, now);
-                            if (res)
+                            bool entryResult = await db.Entry(message._id, now);
+                            if (entryResult)
                             {
-                                string tmp = $"{{\"_id\":\"{message._id}\",\"entryTime\":{now}}}";
-                                Console.WriteLine(tmp);
-                                queue.Send(tmp, "Entry");
+                                EntryMessage entry = new EntryMessage() { 
+                                    _id = message._id, 
+                                    entryTime = now 
+                                };
+                                string entryJson = JsonConvert.SerializeObject(entry);
+
+                                await queue.Send(entryJson, "Entry");
                             }
+                            break;
+                        case "RaspberryPagamenti":
+                            dynamic paymentResult = await db.Payment(message._id, now);
+                            if (paymentResult.Status)
+                            {
+                                PaymentMessage payment = new PaymentMessage()
+                                {
+                                    _id = message._id,
+                                    paymentTime = now,
+                                    bill = paymentResult.TotalBill
+                                };
+                                string paymentJson = JsonConvert.SerializeObject(payment);
+
+                                await queue.Send(paymentJson, "Payment");
+                            }
+                            break;
+                        //TODO: regex per i sensori delle piazzole
+                        case "piazzola":
+
                             break;
                         default:
                             break;
@@ -99,7 +129,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             }
         }
 
-        private class IncomingMessage
+        private class GenericMessage
         {
             public string _id { get; set; }
             public string Dispositivo { get; set; }

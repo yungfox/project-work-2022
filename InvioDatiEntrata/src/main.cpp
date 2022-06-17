@@ -4,7 +4,6 @@
 #include <PubSubClient.h>
 #include <secret.h>
 
-
 #define Button 14
 /* #region   */
 
@@ -20,10 +19,47 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 /* #endregion */
 
+/* #region  SendData */
+
+void InviaDati()
+{
+   // EVENTO DI INVIO ALL'ABBASSAMENTO DELLA SBARRA
+  Serial.println("SONO QUA CASSOOO");
+  String id = "F4 AA B2 89";
+  char datiEntrata[12];
+  datiEntrata[0]='\0';
+  id.toCharArray(datiEntrata, 12);
+  // client.connect("SbarraUscita");
+  if (client.connected())
+  {
+    char clientid[12];
+    clientid[0]='\0';
+    String sbarra = "ESP32Uscita";
+    sbarra.toCharArray(clientid, 12);
+    // Serial.println(clientid);
+
+    char js[60];
+    js[0] = '\0';
+    strcat(js, "{\"_id\":\"");
+    strcat(js, datiEntrata);
+    strcat(js, "\",\"Dispositivo\":\"");
+    strcat(js, clientid);
+    strcat(js, "\"}");
+
+    // publish to the broker
+    client.publish(TOPIC, js);
+    Serial.print(js);
+  }
+  delay(PUBLISH_INTERVAL);
+  client.subscribe(TOPIC);
+}
+/* #endregion */
+
+
 void setup()
 {
   Serial.begin(9600);
-  pinMode(Button,INPUT);
+  pinMode(Button, INPUT);
 
   // mi connetto al wifi
   WiFi.begin(SSID, PASSWORD);
@@ -34,45 +70,30 @@ void setup()
   }
   Serial.println("Connected to the WiFi network!");
 
-  
-  
   // connect to the mqtt broker
   client.setServer(MQTT_BROKER, MQTT_PORT);
-}
-/* #region  SendData */
 
-void InviaDati()
-{
-  client.setServer(MQTT_BROKER, MQTT_PORT);
-  client.connect("SbarraEntrata");
-  if (client.connected())
+
+// connessione con MAC ADDRESS all MQTT Server
+  while (!client.connected())
   {
-    char franco[]= "F4 AA B2 89";
-    Serial.println("Inviato con Francesco");
-    char clientid[12];
-    String sbarra = "ESP32Uscita";
-    sbarra.toCharArray(clientid, 12);
-    Serial.println(clientid);
-
-    char js[60];
-    js[0] = '\0';
-    strcat(js, "{\"_id\":\"");
-    strcat(js, franco);
-    strcat(js, "\",\"Dispositivo\":\"");
-    strcat(js, clientid);
-    strcat(js, "\"}");
-
-    // char *json = js;
-
-    // publish to the broker
-    client.publish(TOPIC, js);
-    Serial.print(js);
-
-    sbarra = "";
+    String client_id = "esp32-client-";
+    client_id += String(WiFi.macAddress());
+    Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+    if (client.connect(client_id.c_str()))
+    {
+      Serial.println("Public emqx mqtt broker connected");
+      //LetturaRFID();
+    }
+    else
+    {
+      Serial.print("failed with state ");
+      Serial.print(client.state());
+      delay(1000);
+    }
   }
+  
 }
-
-/* #endregion */
 
 void loop()
 {
@@ -83,9 +104,8 @@ void loop()
 
     // di sicuro non debuggato da alvise
     InviaDati();
+    delay(PUBLISH_INTERVAL);
+
   }
-  else{
-    Serial.println("aaaaaaa");
-  }
-  delay(PUBLISH_INTERVAL);
+  
 }

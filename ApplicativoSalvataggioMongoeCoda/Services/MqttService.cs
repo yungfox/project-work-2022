@@ -57,6 +57,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                     switch (message.Dispositivo)
                     {
                         case "ESP32Uscita":
+                            var now = DateTime.UtcNow;
                             //await db.Exit(message._id);
                             break;
                         default:

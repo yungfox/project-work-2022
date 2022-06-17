@@ -104,10 +104,12 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
-        public Task<bool> Exit(string IDTicket)
+        public Task<dynamic> Exit(string IDTicket)
         {
             return Task.Run(() =>
             {
+                dynamic res;
+
                 try
                 {
                     var exitime = DateTime.UtcNow;
@@ -121,19 +123,24 @@ namespace ApplicativoSalvataggioMongoeCoda
                     {
                         filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                         var update = Builders<Ticket>.Update.Set("ExitTime", exitime);
-                        collection.UpdateOne(filter, update);
+                        var queryResult = collection.UpdateOne(filter, update);
                         //non è necessario scrivere l'uscita visto che viene cancellata subito
                         DeleteRecordTicket(IDTicket);
-                        return true;                       
+                        res = new { Status = true, Json = queryResult.ToJson() };                
                     }
-                    //in caso contrario dovrà tornare al totem e pagare
-                    return false;
+                    else
+                    {
+                        //in caso contrario dovrà tornare al totem e pagare
+                        res = new { Status = false, Json = "" };
+                    }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                    return false;
+                    res = new { Status = false, Json = "" };
                 }
+
+                return res;
             });        
         }
         public Task<float> GetPrice(string IDTicket)

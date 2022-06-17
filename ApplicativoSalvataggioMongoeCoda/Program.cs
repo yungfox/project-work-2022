@@ -13,9 +13,9 @@ namespace ApplicativoSalvataggioMongoeCoda
             //MqttService mqtt = new MqttService("localhost", "#");
             //mqtt.Subscribe();
 
-            var res = await azureFunctionService.GetUpdatedBillings();
-            await dBMongo.UpdateBilling(res);
-            //await dBMongo.DropTableParkingSpot();
+            //var res = await azureFunctionService.GetUpdatedBillings();
+            //await dBMongo.UpdateBilling(res);
+            dynamic x = await dBMongo.Exit("1234");
 
             Console.WriteLine("finito");
 

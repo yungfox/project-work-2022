@@ -21,7 +21,7 @@ namespace ApplicativoSalvataggioMongoeCoda
             this.dbParking = client.GetDatabase("Parking");
         }
 
-        public Task Entry(string IDTicket)
+        public Task<bool> Entry(string IDTicket)
         {
             return Task.Run(() =>
             {
@@ -35,17 +35,20 @@ namespace ApplicativoSalvataggioMongoeCoda
                         EntryTime = entrytime
                     };
                     collection.InsertOne(myTicket);
+                    return true;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
+                    return false;
                 }
             });  
         }
-        public Task<float> Payment(string IDTicket)
+        public Task<dynamic> Payment(string IDTicket)
         {
             return Task.Run(() =>
             {
+                dynamic res;
                 try
                 {
                     var paymentime = DateTime.UtcNow;
@@ -95,21 +98,20 @@ namespace ApplicativoSalvataggioMongoeCoda
                     filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                     var update = Builders<Ticket>.Update.Set("PaymentTime", paymentime).Set("Bill", price + document.Bill);
                     collection.UpdateOne(filter, update);
-                    return price;
+                    res = new { Status = true, IstantBill = price, TotalBill = price + document.Bill };
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                    return -1;
+                    res = new { Status = false, IstantBill = -1, TotalBill = -1 };
                 }
+                return res;
             });
         }
-        public Task<dynamic> Exit(string IDTicket)
+        public Task<bool> Exit(string IDTicket)
         {
             return Task.Run(() =>
             {
-                dynamic res;
-
                 try
                 {
                     var exitime = DateTime.UtcNow;
@@ -119,28 +121,24 @@ namespace ApplicativoSalvataggioMongoeCoda
                     var document = collection.Find(filter).First();
                     System.TimeSpan diff = exitime.Subtract(document.PaymentTime);
                     //se sono passati meno di 15 minuti dal pagamento il cliente può uscire
+                    
                     if (diff.TotalMinutes <= 15)
                     {
+                        Console.WriteLine("sotto i 15 min");
                         filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                         var update = Builders<Ticket>.Update.Set("ExitTime", exitime);
                         var queryResult = collection.UpdateOne(filter, update);
                         //non è necessario scrivere l'uscita visto che viene cancellata subito
-                        DeleteRecordTicket(IDTicket);
-                        res = new { Status = true, Json = queryResult.ToJson() };                
+                        //DeleteRecordTicket(IDTicket);
+                        return true;                
                     }
-                    else
-                    {
-                        //in caso contrario dovrà tornare al totem e pagare
-                        res = new { Status = false, Json = "" };
-                    }
+                    return false;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
-                    res = new { Status = false, Json = "" };
+                    Console.WriteLine(ex);
+                    return false;
                 }
-
-                return res;
             });        
         }
         public Task<float> GetPrice(string IDTicket)

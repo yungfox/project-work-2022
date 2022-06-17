@@ -16,6 +16,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
         private IMqttClientOptions options;
         private string topic;
         private DBMongo db;
+        private QueueService queue;
 
         public MqttService(string url, string topic)
         {
@@ -30,6 +31,19 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             this.topic = topic;
 
             this.db = new DBMongo();
+
+            this.queue = new QueueService("localhost", "Parking");
+        }
+
+        public async void Send(string payload, string topic)
+        {
+            var message = new MqttApplicationMessageBuilder()
+                                .WithTopic($"parking/{topic}")
+                                .WithPayload(payload)
+                                .WithExactlyOnceQoS()
+                                .Build();
+
+            await client.PublishAsync(message, System.Threading.CancellationToken.None);
         }
 
         public void Subscribe()
@@ -54,11 +68,21 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                     Console.WriteLine($"new message from {e.ClientId} on topic {e.ApplicationMessage.Topic}: {payload}");
                     IncomingMessage message = JsonConvert.DeserializeObject<IncomingMessage>(payload);
 
+                    var now = DateTime.UtcNow;
+
                     switch (message.Dispositivo)
                     {
                         case "ESP32Uscita":
-                            var now = DateTime.UtcNow;
-                            //await db.Exit(message._id);
+                            await db.Exit(message._id, now);
+                            break;
+                        case "ESP32Entrata":
+                            var res = await db.Entry(message._id, now);
+                            if (res)
+                            {
+                                string tmp = $"{{\"_id\":\"{message._id}\",\"entryTime\":{now}}}";
+                                Console.WriteLine(tmp);
+                                queue.Send(tmp, "Entry");
+                            }
                             break;
                         default:
                             break;

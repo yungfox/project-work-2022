@@ -95,113 +95,133 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
         {
             return Task.Run(() =>
             {
-                if(args.Exchange == "Ticket")
+                switch (args.Exchange)
                 {
-                    MongoTicket biglietto = JsonConvert.DeserializeObject<MongoTicket>(payload);
+                    case "Entry":
+                        EntryMessage entry = JsonConvert.DeserializeObject<EntryMessage>(payload);
 
-                    using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
-                    using (SqlCommand cmd = new SqlCommand()
-                    {
-                        Connection = con,
-                        CommandType = System.Data.CommandType.Text,
-                        CommandText = $"INSERT INTO tblTicket (IdTicket, EntryTime, PaymentTime, ExitTime, Bill) VALUES (@biglietto, @entrata, @pagamento, @uscita, @prezzo)"
-                    })
-                    {
-                        cmd.Parameters.AddWithValue("biglietto", biglietto._id);
-                        cmd.Parameters.AddWithValue("entrata", biglietto.OrarioEntrata.Date);
-                        cmd.Parameters.AddWithValue("pagamento", biglietto.OrarioPagamento.Date);
-                        cmd.Parameters.AddWithValue("uscita", biglietto.OrarioUscita.Date);
-                        cmd.Parameters.AddWithValue("prezzo", biglietto.Prezzo);
+                        Console.WriteLine($"dopo la deserializzazione: {entry.entryTime}");
 
-                        con.Open();
-
-                        int result = cmd.ExecuteNonQuery();
-
-                        if (result > 0)
+                        using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
+                        using (SqlCommand cmd = new SqlCommand()
                         {
-                            channel.BasicAck(args.DeliveryTag, false);
-                            Console.WriteLine("successfully inserted the ticket on db!");
-                        }
-                    }
-                }
-                else if(args.Exchange == "Piazzole")
-                {
-                    MongoParkingSpot spot = JsonConvert.DeserializeObject<MongoParkingSpot>(payload);
-
-                    using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
-                    using (SqlCommand cmd = new SqlCommand()
-                    {
-                        Connection = con,
-                        CommandType = System.Data.CommandType.Text,
-                        CommandText = $"UPDATE tblPiazzole SET Orario='{spot.Orario}', Stato='{spot.Stato}' WHERE Id={spot._id}"
-                    })
-                    {
-                        con.Open();
-
-                        int result = cmd.ExecuteNonQuery();
-
-                        if (result > 0)
+                            Connection = con,
+                            CommandType = System.Data.CommandType.Text,
+                            CommandText = $"INSERT INTO tblTicket (IdTicket, EntryTime) VALUES ('{entry._id}', '{entry.entryTime}')"
+                        })
                         {
-                            channel.BasicAck(args.DeliveryTag, false);
-                            Console.WriteLine("successfully updated the parking spot on db!");
+                            con.Open();
+
+                            int result = cmd.ExecuteNonQuery();
+
+                            if (result > 0)
+                            {
+                                channel.BasicAck(args.DeliveryTag, false);
+                            }
                         }
-                    }
+                        break;
+                    case "Payment":
+                        PaymentMessage payment = JsonConvert.DeserializeObject<PaymentMessage>(payload);
+
+                        using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
+                        using (SqlCommand cmd = new SqlCommand()
+                        {
+                            Connection = con,
+                            CommandType = System.Data.CommandType.Text,
+                            CommandText = $"UPDATE tblTicket SET PaymentTime='{payment.paymentTime}', Bill='{payment.bill}' WHERE IdTicket='{payment._id}'"
+                        })
+                        {
+                            con.Open();
+
+                            int result = cmd.ExecuteNonQuery();
+
+                            if (result > 0)
+                            {
+                                channel.BasicAck(args.DeliveryTag, false);
+                            }
+                        }
+                        break;
+                    case "Exit":
+                        ExitMessage exit = JsonConvert.DeserializeObject<ExitMessage>(payload);
+
+                        using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
+                        using (SqlCommand cmd = new SqlCommand()
+                        {
+                            Connection = con,
+                            CommandType = System.Data.CommandType.Text,
+                            CommandText = $"UPDATE tblTicket SET ExitTime='{exit.exitTime}' WHERE IdTicket='{exit._id}'"
+                        })
+                        {
+                            con.Open();
+
+                            int result = cmd.ExecuteNonQuery();
+
+                            if (result > 0)
+                            {
+                                channel.BasicAck(args.DeliveryTag, false);
+                            }
+                        }
+                        break;
+                    case "ParkingSpots":
+                        ParkingSpotMessage spot = JsonConvert.DeserializeObject<ParkingSpotMessage>(payload);
+
+                        using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
+                        using (SqlCommand cmd = new SqlCommand()
+                        {
+                            Connection = con,
+                            CommandType = System.Data.CommandType.Text,
+                            CommandText = $"UPDATE tblPiazzole SET Timestamp='{spot.timestamp}', Status='{spot.taken}' WHERE Id='{spot._id}'"
+                        })
+                        {
+                            con.Open();
+
+                            int result = cmd.ExecuteNonQuery();
+
+                            if (result > 0)
+                            {
+                                channel.BasicAck(args.DeliveryTag, false);
+                                Console.WriteLine("successfully updated the parking spot on db!");
+                            }
+                        }
+                        break;
+                    default:
+                        break;
                 }
             });
         }
-
-        #region UTILITY CLASSES
         private async Task WriteOnCloud(string payload)
         {
             Message message = new Message(Encoding.UTF8.GetBytes(payload));
             await azureClient.SendAsync("Parcheggio", message);
         }
 
-        private class OrarioEntrata
-        {
-            [JsonProperty("$date")]
-            public DateTime Date { get; set; }
-        }
-
-        private class OrarioPagamento
-        {
-            [JsonProperty("$date")]
-            public DateTime Date { get; set; }
-        }
-
-        private class OrarioUscita
-        {
-            [JsonProperty("$date")]
-            public DateTime Date { get; set; }
-        }
-
-        private class MongoTicket
+        #region UTILITY CLASSES
+        private class EntryMessage
         {
             public string _id { get; set; }
-            public OrarioEntrata OrarioEntrata { get; set; }
-            public OrarioPagamento OrarioPagamento { get; set; }
-            public OrarioUscita OrarioUscita { get; set; }
-            public int Prezzo { get; set; }
+            public DateTime entryTime { get; set; }
         }
 
-        private class Date
-        {
-            [JsonProperty("$numberLong")]
-            public string NumberLong { get; set; }
-        }
-
-        private class Orario
-        {
-            [JsonProperty("$date")]
-            public Date Date { get; set; }
-        }
-
-        private class MongoParkingSpot
+        private class PaymentMessage
         {
             public string _id { get; set; }
-            public Orario Orario { get; set; }
-            public bool Stato { get; set; }
+            public DateTime paymentTime { get; set; }
+            public float bill { get; set; }
         }
+
+        private class ExitMessage
+        {
+            public string _id { get; set; }
+            public DateTime exitTime { get; set; }
+        }
+
+        private class ParkingSpotMessage
+        {
+            public string _id { get; set; }
+            public bool taken { get; set; }
+            public DateTime timestamp { get; set; }
+        }
+        
         #endregion
     }
 }

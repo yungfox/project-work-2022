@@ -62,60 +62,66 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                     var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
 
                     Console.WriteLine($"new message from {e.ClientId} on topic {e.ApplicationMessage.Topic}: {payload}");
-                    GenericMessage message = JsonConvert.DeserializeObject<GenericMessage>(payload);
-
+                    
                     var now = DateTime.UtcNow;
 
-                    switch (message.Dispositivo)
+                    if (payload.Contains("Status"))
                     {
-                        case "ESP32Uscita":
-                            bool exitResult = await db.Exit(message._id, now);
-                            if (exitResult)
-                            {
-                                ExitMessage exit = new ExitMessage()
+                        ParkingSpotMessage message = JsonConvert.DeserializeObject<ParkingSpotMessage>(payload);
+                        await db.UpdateParkingSpot(message._id, message.taken, message.timestamp);
+                        await queue.Send(payload, "ParkingSpots");
+                    }
+                    else
+                    {
+                        GenericMessage message = JsonConvert.DeserializeObject<GenericMessage>(payload);
+
+                        switch (message.Dispositivo)
+                        {
+                            case "ESP32Uscita":
+                                bool exitResult = await db.Exit(message._id, now);
+                                if (exitResult)
                                 {
-                                    _id = message._id,
-                                    exitTime = now
-                                };
-                                string exitJson = JsonConvert.SerializeObject(exit);
+                                    ExitMessage exit = new ExitMessage()
+                                    {
+                                        _id = message._id,
+                                        exitTime = now
+                                    };
+                                    string exitJson = JsonConvert.SerializeObject(exit);
 
-                                await queue.Send(exitJson, "Exit");
-                            }
-                            break;
-                        case "ESP32Entrata":
-                            bool entryResult = await db.Entry(message._id, now);
-                            if (entryResult)
-                            {
-                                EntryMessage entry = new EntryMessage() { 
-                                    _id = message._id, 
-                                    entryTime = now 
-                                };
-                                string entryJson = JsonConvert.SerializeObject(entry);
-
-                                await queue.Send(entryJson, "Entry");
-                            }
-                            break;
-                        case "RaspberryPagamenti":
-                            dynamic paymentResult = await db.Payment(message._id, now);
-                            if (paymentResult.Status)
-                            {
-                                PaymentMessage payment = new PaymentMessage()
+                                    await queue.Send(exitJson, "Exit");
+                                }
+                                break;
+                            case "ESP32Entrata":
+                                bool entryResult = await db.Entry(message._id, now);
+                                if (entryResult)
                                 {
-                                    _id = message._id,
-                                    paymentTime = now,
-                                    bill = paymentResult.TotalBill
-                                };
-                                string paymentJson = JsonConvert.SerializeObject(payment);
+                                    EntryMessage entry = new EntryMessage() { 
+                                        _id = message._id, 
+                                        entryTime = now 
+                                    };
+                                    string entryJson = JsonConvert.SerializeObject(entry);
 
-                                await queue.Send(paymentJson, "Payment");
-                            }
-                            break;
-                        //TODO: regex per i sensori delle piazzole
-                        case "piazzola":
+                                    await queue.Send(entryJson, "Entry");
+                                }
+                                break;
+                            case "RaspberryPagamenti":
+                                dynamic paymentResult = await db.Payment(message._id, now);
+                                if (paymentResult.Status)
+                                {
+                                    PaymentMessage payment = new PaymentMessage()
+                                    {
+                                        _id = message._id,
+                                        paymentTime = now,
+                                        bill = paymentResult.TotalBill
+                                    };
+                                    string paymentJson = JsonConvert.SerializeObject(payment);
 
-                            break;
-                        default:
-                            break;
+                                    await queue.Send(paymentJson, "Payment");
+                                }
+                                break;
+                            default:
+                                break;
+                        }
                     }
 
                 });
@@ -127,6 +133,21 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        private bool CheckId(string id)
+        {
+            if (id.Length == 3 && int.TryParse(id, out _))
+            {
+                int id_num = Convert.ToInt32(id);
+
+                if ((id_num >= 1 && id_num <= 50) || (id_num >= 101 && id_num <= 150))
+                    return true;
+                else
+                    return false;
+            }
+            else
+                return false;
         }
 
         private class GenericMessage

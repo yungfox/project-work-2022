@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace ApplicativoSalvataggioMongoeCoda.Models
 {
-    class Prezzi
+    class Billing
     {
         [BsonId]
         public int id { get; set; }
-        public float mezzora { get; set; }
-        public float unora { get; set; }
-        public float treore { get; set; }
-        public float seiore { get; set; }
-        public float giornaliero { get; set; }
+        public float halfanhour { get; set; }
+        public float onehour { get; set; }
+        public float threehours { get; set; }
+        public float sixhours { get; set; }
+        public float daily { get; set; }
     }
 }

@@ -12,13 +12,13 @@ namespace ApplicativoSalvataggioMongoeCoda
     class DBMongo
     {
         public MongoClient client;
-        public IMongoDatabase dbParcheggio;
+        public IMongoDatabase dbParking;
         //public IMongoCollection <Biglietto> collection;
 
         public DBMongo()
         {
             this.client = new MongoClient("mongodb://127.0.0.1:27017");
-            this.dbParcheggio = client.GetDatabase("Parcheggio");
+            this.dbParking = client.GetDatabase("Parking");
         }
 
         public Task Entry(string IDTicket)
@@ -28,13 +28,13 @@ namespace ApplicativoSalvataggioMongoeCoda
                 try
                 {
                     var entrytime = DateTime.UtcNow;
-                    var collection = dbParcheggio.GetCollection<Biglietto>("Biglietti");
-                    Biglietto myBiglietto = new()
+                    var collection = dbParking.GetCollection<Ticket>("Ticket");
+                    Ticket myTicket = new()
                     {
-                        IdBiglietto = IDTicket,
-                        OrarioEntrata = entrytime
+                        IdTicket = IDTicket,
+                        EntryTime = entrytime
                     };
-                    collection.InsertOne(myBiglietto);
+                    collection.InsertOne(myTicket);
                 }
                 catch (Exception ex)
                 {
@@ -49,24 +49,24 @@ namespace ApplicativoSalvataggioMongoeCoda
                 try
                 {
                     var paymentime = DateTime.UtcNow;
-                    var collection = dbParcheggio.GetCollection<Biglietto>("Biglietti");
+                    var collection = dbParking.GetCollection<Ticket>("Ticket");
                     //calcolo quanto tempo è passato da quando sono entrato a quando voglio pagare
-                    var filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDTicket);
+                    var filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                     var document = collection.Find(filter).First();
                     System.TimeSpan diff;
-                    if (DateTime.Compare(document.OrarioPagamento, Convert.ToDateTime("1970-01-01T00:00:00.000+00:00")) < 0)
+                    if (DateTime.Compare(document.PaymentTime, Convert.ToDateTime("1970-01-01T00:00:00.000+00:00")) < 0)
                     {
                         //se l'orario pagamento non è mai stato istanziato allora calcolo
-                        diff = paymentime.Subtract(Convert.ToDateTime(document.OrarioEntrata));
+                        diff = paymentime.Subtract(Convert.ToDateTime(document.EntryTime));
                     }
                     else
                     {
                         //se invece è già istanziato vuol dire che l'utente ha già pagato una volta ma ci ha messo troppo tempo ad arrivare all'uscita
-                        diff = paymentime.Subtract(Convert.ToDateTime(document.OrarioPagamento));
+                        diff = paymentime.Subtract(Convert.ToDateTime(document.PaymentTime));
                     }
                     //prendo i prezzi odierni
-                    var collection2 = dbParcheggio.GetCollection<Prezzi>("Prezzi");
-                    var filter2 = Builders<Prezzi>.Filter.Eq("id", 1);
+                    var collection2 = dbParking.GetCollection<Billing>("Billing");
+                    var filter2 = Builders<Billing>.Filter.Eq("_id", 1);
                     var document2 = collection2.Find(filter2).First();
                     float price = 0;
                     switch (diff.TotalMinutes)
@@ -75,25 +75,25 @@ namespace ApplicativoSalvataggioMongoeCoda
                             price = 0;
                             break;
                         case <= 30:
-                            price = document2.mezzora;
+                            price = document2.halfanhour;
                             break;
                         case <= 60:
-                            price = document2.unora;
+                            price = document2.onehour;
                             break;
                         case <= 180:
-                            price = document2.treore;
+                            price = document2.threehours;
                             break;
                         case <= 360:
-                            price = document2.seiore;
+                            price = document2.sixhours;
                             break;
                         case <= 1440:
-                            price = Convert.ToInt32(diff.TotalDays) * document2.giornaliero;
+                            price = Convert.ToInt32(diff.TotalDays) * document2.daily;
                             break;
                         default:
                             break;
                     }
-                    filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDTicket);
-                    var update = Builders<Biglietto>.Update.Set("OrarioPagamento", paymentime).Set("Prezzo", price + document.Prezzo);
+                    filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
+                    var update = Builders<Ticket>.Update.Set("PaymentTime", paymentime).Set("Bill", price + document.Bill);
                     collection.UpdateOne(filter, update);
                     return price;
                 }
@@ -111,20 +111,20 @@ namespace ApplicativoSalvataggioMongoeCoda
                 try
                 {
                     var exitime = DateTime.UtcNow;
-                    var collection = dbParcheggio.GetCollection<Biglietto>("Biglietti");
+                    var collection = dbParking.GetCollection<Ticket>("Ticket");
                     //calcolo quanto tempo è passato da quando il cliente ha pagato a quando è arrivato alla sbarra
-                    var filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDTicket);
+                    var filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                     var document = collection.Find(filter).First();
-                    System.TimeSpan diff = exitime.Subtract(document.OrarioPagamento);
+                    System.TimeSpan diff = exitime.Subtract(document.PaymentTime);
                     //se sono passati meno di 15 minuti dal pagamento il cliente può uscire
                     if (diff.TotalMinutes <= 15)
                     {
-                        filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDTicket);
-                        var update = Builders<Biglietto>.Update.Set("OrarioUscita", exitime);
+                        filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
+                        var update = Builders<Ticket>.Update.Set("ExitTime", exitime);
                         collection.UpdateOne(filter, update);
                         //non è necessario scrivere l'uscita visto che viene cancellata subito
                         DeleteRecordTicket(IDTicket);
-                        return true;                        
+                        return true;                       
                     }
                     //in caso contrario dovrà tornare al totem e pagare
                     return false;
@@ -142,10 +142,10 @@ namespace ApplicativoSalvataggioMongoeCoda
             {
                 try
                 {
-                    var collection = dbParcheggio.GetCollection<Biglietto>("Biglietti");
-                    var filter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDTicket);
+                    var collection = dbParking.GetCollection<Ticket>("Ticket");
+                    var filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                     var document = collection.Find(filter).First();
-                    return (float)document.Prezzo;
+                    return (float)document.Bill;
                 }
                 catch (Exception ex)
                 {
@@ -154,15 +154,19 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
-        public Task UpdateBilling(Prezzi myPrezzi)
+        public Task UpdateBilling(Billing myBill)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var collection = dbParcheggio.GetCollection<Prezzi>("Prezzi");
-                    var filter = Builders<Prezzi>.Filter.Eq("id", 1);
-                    var update = Builders<Prezzi>.Update.Set("mezzora", myPrezzi.mezzora).Set("unora",myPrezzi.unora).Set("treore", myPrezzi.treore).Set("seiore", myPrezzi.seiore).Set("giornaliero", myPrezzi.giornaliero);
+                    var collection = dbParking.GetCollection<Billing>("Billing");
+                    var filter = Builders<Billing>.Filter.Eq("id", 1);
+                    var update = Builders<Billing>.Update.Set("halfanhour", myBill.halfanhour)
+                                                    .Set("onehour",myBill.onehour)
+                                                    .Set("threehours", myBill.threehours)
+                                                    .Set("sixhours", myBill.sixhours)
+                                                    .Set("daily", myBill.daily);
                     collection.UpdateOne(filter, update);
                 }
                 catch (Exception ex)
@@ -177,8 +181,8 @@ namespace ApplicativoSalvataggioMongoeCoda
             {
                 try
                 {
-                    var collection = dbParcheggio.GetCollection<Biglietto>("Biglietti");
-                    var deleteFilter = Builders<Biglietto>.Filter.Eq("IdBiglietto", IDTicket);
+                    var collection = dbParking.GetCollection<Ticket>("Ticket");
+                    var deleteFilter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                     collection.DeleteOne(deleteFilter);
                     return true;
                 }
@@ -189,7 +193,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
-
+        //Aggiorna lo stato e la data di una piazzola specifica
         public Task UpdateParkingSpot(string ID, Boolean Status)
         {
             return Task.Run(() =>
@@ -197,9 +201,9 @@ namespace ApplicativoSalvataggioMongoeCoda
                 try
                 {
                     var time = DateTime.UtcNow;
-                    var collection = dbParcheggio.GetCollection<Piazzola>("Piazzole");
-                    var filter = Builders<Piazzola>.Filter.Eq("_id", ID);
-                    var update = Builders<Piazzola>.Update.Set("Stato", Status).Set("Orario",time);
+                    var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
+                    var filter = Builders<ParkingSpot>.Filter.Eq("_id", ID);
+                    var update = Builders<ParkingSpot>.Update.Set("Status", Status).Set("Timestamp",time);
                     collection.UpdateOne(filter, update);
                 }
                 catch (Exception ex)
@@ -208,39 +212,58 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
+        //Metodi per popolare da zero il db Mongo
+        public Task CreateBilling()
+        {
+            return Task.Run(() =>
+            {
+                var collection = dbParking.GetCollection<Billing>("Billing");
+                Billing myBilling;
+                myBilling = new()
+                {
+                    id = 1,
+                    halfanhour = 0,
+                    onehour = 0,
+                    threehours = 0,
+                    sixhours = 0,
+                    daily = 0
+                };
+                collection.InsertOne(myBilling);
+            });
+        }
         public Task CreateParkingSpot()
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var collection = dbParcheggio.GetCollection<Piazzola>("Piazzole");
+                    var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
                     if (collection.Count(_ => true) == 0)
                     {
                         for (int i = 0; i < 2; i++)
                         {
                             for (int j = 0; j < 50; j++)
                             {
-                                Piazzola myPiazzola;
+                                ParkingSpot myParkingSpot;
                                 if (j<10)
                                 {
-                                    myPiazzola = new()
+                                    myParkingSpot = new()
                                     {
                                         Id = i + "0" + j,
-                                        IdPiano = i,
-                                        IdPiazzola = j
+                                        IdPFloor = i,
+                                        IdParkingSpot = j
                                     };
                                 }
                                 else
                                 {
-                                    myPiazzola = new()
+                                    myParkingSpot = new()
                                     {
                                         Id = i + "" + j,
-                                        IdPiano = i,
-                                        IdPiazzola = j
+                                        IdPFloor = i,
+                                        IdParkingSpot = j
                                     };
                                 }
-                                collection.InsertOne(myPiazzola);
+                                collection.InsertOne(myParkingSpot);
                             }
                         }
                         Console.WriteLine("finito creazione");
@@ -256,28 +279,35 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
-        public Task DropTable()
+        public Task DropTableParkingSpot()
         {
             return Task.Run(() =>
             {
-                var collection = dbParcheggio.GetCollection<Piazzola>("Piazzole");
-                for (int i = 0; i < 2; i++)
+                try
                 {
-                    for (int j = 0; j < 50; j++)
+                    var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
+                    for (int i = 0; i < 2; i++)
                     {
-                        if (j < 10)
+                        for (int j = 0; j < 50; j++)
                         {
-                            var deleteFilter = Builders<Piazzola>.Filter.Eq("_id", i + "0" + j);
-                            collection.DeleteOne(deleteFilter);
-                        }
-                        else
-                        {
-                            var deleteFilter = Builders<Piazzola>.Filter.Eq("_id", i + "" + j);
-                            collection.DeleteOne(deleteFilter);
+                            if (j < 10)
+                            {
+                                var deleteFilter = Builders<ParkingSpot>.Filter.Eq("_id", i + "0" + j);
+                                collection.DeleteOne(deleteFilter);
+                            }
+                            else
+                            {
+                                var deleteFilter = Builders<ParkingSpot>.Filter.Eq("_id", i + "" + j);
+                                collection.DeleteOne(deleteFilter);
+                            }
                         }
                     }
+                    Console.WriteLine("finito eliminazione");
                 }
-                Console.WriteLine("finito eliminazione");
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                } 
             });
         }
     }

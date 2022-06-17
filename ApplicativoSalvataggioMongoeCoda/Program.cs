@@ -13,8 +13,11 @@ namespace ApplicativoSalvataggioMongoeCoda
             //MqttService mqtt = new MqttService("localhost", "#");
             //mqtt.Subscribe();
 
-            var res = await azureFunctionService.GetUpdatedBillings();
-            await dBMongo.UpdateBilling(res);
+            //var res = await azureFunctionService.GetUpdatedBillings();
+            //await dBMongo.UpdateBilling(res);
+            await dBMongo.DropTableParkingSpot();
+
+            Console.WriteLine("finito");
 
             //string test = $"{{\"_id\":\"55555555\",\"OrarioEntrata\":{{\"$date\":\"2022-06-15T11:19:35.397Z\"}},\"OrarioPagamento\":{{\"$date\":\"2022-06-15T11:21:35.398Z\"}},\"OrarioUscita\":{{\"$date\":\"1970-01-01T00:00:00.000Z\"}},\"Prezzo\":90}}";
 

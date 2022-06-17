@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace ApplicativoSalvataggioMongoeCoda.Models
 {
-    class Piazzola
+    class ParkingSpot
     {
         [BsonId]
         public string Id { get; set; }
-        public int IdPiano { get; set; }
-        public int IdPiazzola { get; set; }
-        public DateTime Orario { get; set; }
-        public Boolean Stato { get; set; }
+        public int IdPFloor { get; set; }
+        public int IdParkingSpot { get; set; }
+        public DateTime Timestamp { get; set; }
+        public Boolean Status { get; set; }
     }
 }

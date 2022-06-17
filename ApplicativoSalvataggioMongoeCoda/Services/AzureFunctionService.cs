@@ -10,7 +10,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 {
     class AzureFunctionService
     {
-        public Task<Prezzi> GetUpdatedBillings()
+        public Task<Billing> GetUpdatedBillings()
         {
             return Task.Run(() =>
             {
@@ -22,23 +22,23 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                     CommandText = "SELECT * FROM tblPrezzi"
                 })
                 {
-                    List<Prezzi> myListPrezzi = new List<Prezzi>();
-                    Prezzi myPrezzi;
+                    List<Billing> myListBill = new List<Billing>();
+                    Billing myBill;
                     con.Open();
                     SqlDataReader mySqlDataReader = cmd.ExecuteReader();
                     while (mySqlDataReader.Read())//finchè c'è qualcosa da leggere, il metodo Read() restituisce true se trova una riga
                     {
-                        myPrezzi = new Prezzi()
+                        myBill = new Billing()
                         {
-                            mezzora =(float)Convert.ToDouble(mySqlDataReader["mezzora"]),
-                            unora = (float)Convert.ToDouble(mySqlDataReader["unora"]),
-                            treore = (float)Convert.ToDouble(mySqlDataReader["treore"]),
-                            seiore = (float)Convert.ToDouble(mySqlDataReader["seiore"]),
-                            giornaliero = (float)Convert.ToDouble(mySqlDataReader["giornaliero"]),
+                            halfanhour =(float)Convert.ToDouble(mySqlDataReader["mezzora"]),
+                            onehour = (float)Convert.ToDouble(mySqlDataReader["unora"]),
+                            threehours = (float)Convert.ToDouble(mySqlDataReader["treore"]),
+                            sixhours = (float)Convert.ToDouble(mySqlDataReader["seiore"]),
+                            daily = (float)Convert.ToDouble(mySqlDataReader["giornaliero"]),
                         };
-                        myListPrezzi.Add(myPrezzi);
+                        myListBill.Add(myBill);
                     }
-                    return myListPrezzi[0];
+                    return myListBill[0];
                 }
             });
         }

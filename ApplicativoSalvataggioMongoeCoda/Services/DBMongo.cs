@@ -31,7 +31,9 @@ namespace ApplicativoSalvataggioMongoeCoda
                     Ticket myTicket = new()
                     {
                         IdTicket = IDTicket,
-                        EntryTime = entrytime
+                        EntryTime = entrytime,
+                        ExitTime = Convert.ToDateTime("1970 - 01 - 01 00:00:00.000"),
+                        PaymentTime = Convert.ToDateTime("1970-01-01 00:00:00.000")
                     };
                     collection.InsertOne(myTicket);
                     return true;
@@ -55,7 +57,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     var filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                     var document = collection.Find(filter).First();
                     System.TimeSpan diff;
-                    if (DateTime.Compare(document.PaymentTime, Convert.ToDateTime("1970-01-01T00:00:00.000+00:00")) < 0)
+                    if (DateTime.Compare(document.PaymentTime, Convert.ToDateTime("1971-01-01T00:00:00.000+00:00")) <= 0)
                     {
                         //se l'orario pagamento non è mai stato istanziato allora calcolo
                         diff = paymentime.Subtract(Convert.ToDateTime(document.EntryTime));
@@ -252,7 +254,8 @@ namespace ApplicativoSalvataggioMongoeCoda
                                     {
                                         Id = i + "0" + j,
                                         IdFloor = i,
-                                        IdParkingSpot = j
+                                        IdParkingSpot = j,
+                                        Timestamp = Convert.ToDateTime("1970-01-01 00:00:00.000")
                                     };
                                 }
                                 else

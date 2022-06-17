@@ -25,7 +25,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
             channel = connection.CreateModel();
             channel.QueueDeclare(
-                        queue: "Parcheggio",
+                        queue: "Parking",
                         durable: true,
                         exclusive: false,
                         autoDelete: false,
@@ -95,7 +95,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
         {
             return Task.Run(() =>
             {
-                if(args.Exchange == "Biglietti")
+                if(args.Exchange == "Ticket")
                 {
                     MongoTicket biglietto = JsonConvert.DeserializeObject<MongoTicket>(payload);
 
@@ -104,7 +104,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                     {
                         Connection = con,
                         CommandType = System.Data.CommandType.Text,
-                        CommandText = $"INSERT INTO tblBiglietti (IdBiglietto, OrarioEntrata, OrarioPagamento, OrarioUscita, Prezzo) VALUES (@biglietto, @entrata, @pagamento, @uscita, @prezzo)"
+                        CommandText = $"INSERT INTO tblTicket (IdTicket, EntryTime, PaymentTime, ExitTime, Bill) VALUES (@biglietto, @entrata, @pagamento, @uscita, @prezzo)"
                     })
                     {
                         cmd.Parameters.AddWithValue("biglietto", biglietto._id);

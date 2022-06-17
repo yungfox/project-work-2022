@@ -12,7 +12,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Models
     {
         [BsonId]
         public string Id { get; set; }
-        public int IdPFloor { get; set; }
+        public int IdFloor { get; set; }
         public int IdParkingSpot { get; set; }
         public DateTime Timestamp { get; set; }
         public Boolean Status { get; set; }

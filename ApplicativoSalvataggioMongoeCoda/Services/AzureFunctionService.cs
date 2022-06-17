@@ -19,7 +19,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                 {
                     Connection = con,
                     CommandType = System.Data.CommandType.Text,
-                    CommandText = "SELECT * FROM tblPrezzi"
+                    CommandText = "SELECT * FROM tblBilling"
                 })
                 {
                     List<Billing> myListBill = new List<Billing>();
@@ -30,11 +30,11 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                     {
                         myBill = new Billing()
                         {
-                            halfanhour =(float)Convert.ToDouble(mySqlDataReader["mezzora"]),
-                            onehour = (float)Convert.ToDouble(mySqlDataReader["unora"]),
-                            threehours = (float)Convert.ToDouble(mySqlDataReader["treore"]),
-                            sixhours = (float)Convert.ToDouble(mySqlDataReader["seiore"]),
-                            daily = (float)Convert.ToDouble(mySqlDataReader["giornaliero"]),
+                            halfanhour =(float)Convert.ToDouble(mySqlDataReader["halfanhour"]),
+                            onehour = (float)Convert.ToDouble(mySqlDataReader["onehour"]),
+                            threehours = (float)Convert.ToDouble(mySqlDataReader["threehours"]),
+                            sixhours = (float)Convert.ToDouble(mySqlDataReader["sixhours"]),
+                            daily = (float)Convert.ToDouble(mySqlDataReader["daily"]),
                         };
                         myListBill.Add(myBill);
                     }

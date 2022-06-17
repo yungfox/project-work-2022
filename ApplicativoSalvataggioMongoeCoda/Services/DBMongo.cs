@@ -250,7 +250,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                                     myParkingSpot = new()
                                     {
                                         Id = i + "0" + j,
-                                        IdPFloor = i,
+                                        IdFloor = i,
                                         IdParkingSpot = j
                                     };
                                 }
@@ -259,7 +259,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                                     myParkingSpot = new()
                                     {
                                         Id = i + "" + j,
-                                        IdPFloor = i,
+                                        IdFloor = i,
                                         IdParkingSpot = j
                                     };
                                 }

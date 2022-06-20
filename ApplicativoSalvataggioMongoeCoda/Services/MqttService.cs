@@ -79,6 +79,8 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         {
                             case "ESP32Uscita":
                                 bool exitResult = await db.Exit(message._id, now);
+                                string json = $"{{\"stato\":{exitResult}}}";
+                                Send(json, "exit/send");
                                 if (exitResult)
                                 {
                                     ExitMessage exit = new ExitMessage()

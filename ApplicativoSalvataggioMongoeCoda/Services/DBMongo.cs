@@ -213,6 +213,16 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
+        public Task<int> GetBusyParkingSpot()
+        {
+            return Task.Run(() =>
+            {
+                var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
+                var filter = Builders<ParkingSpot>.Filter.Eq("Status", true);
+                var num = (int) collection.Find(filter).Count();
+                return num;
+            });
+        }
         //Metodi per popolare da zero il db Mongo
         public Task CreateBilling()
         {

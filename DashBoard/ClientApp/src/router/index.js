@@ -1,23 +1,23 @@
 ﻿import { createWebHistory, createRouter } from "vue-router";
 import Home from "@/components/Home.vue";
-import Counter from "@/components/Counter.vue";
-import FetchData from "@/components/FetchData.vue";
+import Details from '@/components/Details.vue'
+import Settings from '@/components/Settings.vue'
 
 const routes = [
     {
         path: "/",
-        name: "Home",
+        name: "home",
         component: Home,
     },
     {
-        path: "/Counter",
-        name: "Counter",
-        component: Counter,
+        path: "/details",
+        name: "counter",
+        component: Details,
     },
     {
-        path: "/FetchData",
-        name: "FetchData",
-        component: FetchData,
+        path: "/settings",
+        name: "settings",
+        component: Settings,
     }
 ];
 

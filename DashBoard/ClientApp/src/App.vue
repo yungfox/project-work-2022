@@ -1,26 +1,39 @@
 <template>
-  <nav-menu></nav-menu>
-  <router-view />
+    <div class="background">
+        <div class="mask">
+            <div class="row">
+                <div class="sidebar">
+                    <div class="menu-items-section">
+                        <router-link to="/" class="link-reset">
+                            <div class="menu-item">
+                                <div class="menu-item-icon"></div>
+                                <span class="menu-item-title">overview</span>
+                            </div>
+                        </router-link>
+                        <router-link to="/details" class="link-reset">
+                            <div class="menu-item">
+                                <div class="menu-item-icon"></div>
+                                <span class="menu-item-title">details</span>
+                            </div>
+                        </router-link>
+                        <router-link to="/settings" class="link-reset">
+                            <div class="menu-item">
+                                <div class="menu-item-icon"></div>
+                                <span class="menu-item-title">settings</span>
+                            </div>
+                        </router-link>
+                    </div>
+                </div>
+                <div class="content">
+                    <router-view />
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
-    import NavMenu from './components/NavMenu.vue'
-
 export default {
-  name: 'App',
-  components: {
-      NavMenu
-  }
+    name: 'App'
 }
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>

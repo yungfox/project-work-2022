@@ -29,7 +29,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
             this.topic = topic;
             this.db = new DBMongo();
-            this.queue = new QueueService("localhost", "Parking");
+            this.queue = new QueueService("172.16.5.4", "Parking");
         }
 
         public async void Send(string payload, string topic)
@@ -38,8 +38,6 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                                 .WithTopic($"parking/{topic}")
                                 .WithPayload(payload)
                                 .WithAtLeastOnceQoS()
-                                //.WithRetainFlag()
-                                //.WithExactlyOnceQoS()
                                 .Build();
 
             await client.PublishAsync(message, System.Threading.CancellationToken.None);
@@ -110,7 +108,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                                         };
                                         string exitJson = JsonConvert.SerializeObject(exit);
 
-                                        //await queue.Send(exitJson, "Exit");
+                                        await queue.Send(exitJson, "Exit");
                                     }
                                     catch (Exception ex)
                                     {

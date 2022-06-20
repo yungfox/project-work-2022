@@ -21,12 +21,17 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
         public QueueService(string req_url, string coda)
         {
             this.coda = coda;
-            factory = new ConnectionFactory() { HostName = req_url };
+            factory = new ConnectionFactory() {
+                HostName = req_url,
+                UserName = Secrets.RABBITMQ_USERNAME,
+                Password = Secrets.RABBITMQ_PASSWORD
+            };
+
             connection = factory.CreateConnection();
 
             channel = connection.CreateModel();
             channel.QueueDeclare(
-                        queue: "Parking",
+                        queue: coda,
                         durable: true,
                         exclusive: false,
                         autoDelete: false,

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 using MQTTnet;
 using MQTTnet.Client;
@@ -36,25 +37,35 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             var message = new MqttApplicationMessageBuilder()
                                 .WithTopic($"parking/{topic}")
                                 .WithPayload(payload)
-                                .WithExactlyOnceQoS()
+                                .WithAtLeastOnceQoS()
+                                //.WithRetainFlag()
+                                //.WithExactlyOnceQoS()
                                 .Build();
 
             await client.PublishAsync(message, System.Threading.CancellationToken.None);
         }
 
-        public void Subscribe()
+        public async void Subscribe()
         {
             try
             {
-                client.UseConnectedHandler(e =>
+                client.UseConnectedHandler(async e =>
                 {
                     Console.WriteLine("connected to the mqtt broker!");
-                    client.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(topic).Build()).Wait();
+                    await client.SubscribeAsync(new MqttTopicFilterBuilder()
+                                                        .WithTopic(topic)
+                                                        .Build()
+                                                );
                 });
 
-                client.UseDisconnectedHandler(e =>
+                client.UseDisconnectedHandler(async e =>
                 {
-                    Console.WriteLine("disconnected from the mqtt broker!");
+                    Console.WriteLine("disconnected from the mqtt broker! trying to reconnect...");
+                    while(!client.IsConnected)
+                    {
+                        Thread.Sleep(5000);
+                        await client.ConnectAsync(options, CancellationToken.None);
+                    }
                 });
 
                 client.UseApplicationMessageReceivedHandler(async e =>
@@ -67,9 +78,16 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
                     if (payload.Contains("Status"))
                     {
-                        ParkingSpotMessage message = JsonConvert.DeserializeObject<ParkingSpotMessage>(payload);
-                        await db.UpdateParkingSpot(message._id, message.taken, message.timestamp);
-                        await queue.Send(payload, "ParkingSpots");
+                        try
+                        {
+                            ParkingSpotMessage message = JsonConvert.DeserializeObject<ParkingSpotMessage>(payload);
+                            await db.UpdateParkingSpot(message._id, message.taken, message.timestamp);
+                            await queue.Send(payload, "ParkingSpots");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
                     }
                     else
                     {
@@ -79,48 +97,73 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         {
                             case "ESP32Uscita":
                                 bool exitResult = await db.Exit(message._id, now);
-                                string json = $"{{\"stato\":{exitResult}}}";
-                                Send(json, "exit/send");
+                                string json = $"{{\"stato\":{Convert.ToInt32(exitResult)}}}";
+                                Send(json, "exit/gatewaytodevice");
                                 if (exitResult)
                                 {
-                                    ExitMessage exit = new ExitMessage()
+                                    try
                                     {
-                                        _id = message._id,
-                                        exitTime = now
-                                    };
-                                    string exitJson = JsonConvert.SerializeObject(exit);
+                                        ExitMessage exit = new ExitMessage()
+                                        {
+                                            _id = message._id,
+                                            exitTime = now
+                                        };
+                                        string exitJson = JsonConvert.SerializeObject(exit);
 
-                                    await queue.Send(exitJson, "Exit");
+                                        //await queue.Send(exitJson, "Exit");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine(ex);
+                                    }
                                 }
                                 break;
+
                             case "ESP32Entrata":
                                 bool entryResult = await db.Entry(message._id, now);
                                 if (entryResult)
                                 {
-                                    EntryMessage entry = new EntryMessage() { 
-                                        _id = message._id, 
-                                        entryTime = now 
-                                    };
-                                    string entryJson = JsonConvert.SerializeObject(entry);
+                                    try
+                                    {
+                                        EntryMessage entry = new EntryMessage()
+                                        {
+                                            _id = message._id,
+                                            entryTime = now
+                                        };
+                                        string entryJson = JsonConvert.SerializeObject(entry);
 
-                                    await queue.Send(entryJson, "Entry");
+                                        await queue.Send(entryJson, "Entry");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine(ex);
+                                    }
                                 }
                                 break;
-                            case "RaspberryPagamenti":
+
+                            case "TotemPagamento":
                                 dynamic paymentResult = await db.Payment(message._id, now);
                                 if (paymentResult.Status)
                                 {
-                                    PaymentMessage payment = new PaymentMessage()
+                                    try
                                     {
-                                        _id = message._id,
-                                        paymentTime = now,
-                                        bill = paymentResult.TotalBill
-                                    };
-                                    string paymentJson = JsonConvert.SerializeObject(payment);
+                                        PaymentMessage payment = new PaymentMessage()
+                                        {
+                                            _id = message._id,
+                                            paymentTime = now,
+                                            bill = (float)paymentResult.TotalBill
+                                        };
+                                        string paymentJson = JsonConvert.SerializeObject(payment);
 
-                                    await queue.Send(paymentJson, "Payment");
+                                        await queue.Send(paymentJson, "Payment");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine(ex);
+                                    }
                                 }
                                 break;
+
                             default:
                                 break;
                         }
@@ -128,7 +171,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
                 });
 
-                client.ConnectAsync(options).Wait();
+                await client.ConnectAsync(options);
 
             }
             catch (Exception ex)
@@ -145,11 +188,8 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
                 if ((id_num >= 1 && id_num <= 50) || (id_num >= 101 && id_num <= 150))
                     return true;
-                else
-                    return false;
             }
-            else
-                return false;
+            return false;
         }
 
         private class GenericMessage

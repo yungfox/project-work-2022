@@ -102,106 +102,143 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                 switch (args.Exchange)
                 {
                     case "Entry":
-                        EntryMessage entry = JsonConvert.DeserializeObject<EntryMessage>(payload);
-
-                        Console.WriteLine($"dopo la deserializzazione: {entry.entryTime}");
-
-                        using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
-                        using (SqlCommand cmd = new SqlCommand()
+                        try
                         {
-                            Connection = con,
-                            CommandType = System.Data.CommandType.Text,
-                            CommandText = "INSERT INTO tblTicket (IdTicket, EntryTime) VALUES (@id, @time)"
-                        })
-                        {
-                            cmd.Parameters.AddWithValue("id", entry._id);
-                            cmd.Parameters.AddWithValue("time", entry.entryTime);
+                            EntryMessage entry = JsonConvert.DeserializeObject<EntryMessage>(payload);
 
-                            con.Open();
-
-                            int result = cmd.ExecuteNonQuery();
-
-                            if (result > 0)
+                            using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
+                            using (SqlCommand cmd = new SqlCommand()
                             {
-                                channel.BasicAck(args.DeliveryTag, false);
+                                Connection = con,
+                                CommandType = System.Data.CommandType.Text,
+                                CommandText = "INSERT INTO tblTicket (IdTicket, EntryTime) VALUES (@id, @time)"
+                            })
+                            {
+                                cmd.Parameters.AddWithValue("id", entry._id);
+                                cmd.Parameters.AddWithValue("time", entry.entryTime);
+
+                                con.Open();
+
+                                int result = cmd.ExecuteNonQuery();
+
+                                if (result > 0)
+                                {
+                                    channel.BasicAck(args.DeliveryTag, false);
+                                    Console.WriteLine("successfully inserted the entry on db!");
+                                }
                             }
                         }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+
                         break;
+
                     case "Payment":
-                        PaymentMessage payment = JsonConvert.DeserializeObject<PaymentMessage>(payload);
-
-                        using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
-                        using (SqlCommand cmd = new SqlCommand()
+                        try
                         {
-                            Connection = con,
-                            CommandType = System.Data.CommandType.Text,
-                            CommandText = "UPDATE tblTicket SET PaymentTime=@time, Bill=@bill WHERE IdTicket=@time"
-                        })
-                        {
-                            cmd.Parameters.AddWithValue("id", payment._id);
-                            cmd.Parameters.AddWithValue("time", payment.paymentTime);
-                            cmd.Parameters.AddWithValue("bill", payment.bill);
+                            PaymentMessage payment = JsonConvert.DeserializeObject<PaymentMessage>(payload);
 
-                            con.Open();
-
-                            int result = cmd.ExecuteNonQuery();
-
-                            if (result > 0)
+                            using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
+                            using (SqlCommand cmd = new SqlCommand()
                             {
-                                channel.BasicAck(args.DeliveryTag, false);
+                                Connection = con,
+                                CommandType = System.Data.CommandType.Text,
+                                CommandText = "UPDATE tblTicket SET PaymentTime=@time, Bill=@bill WHERE IdTicket=@id"
+                            })
+                            {
+                                cmd.Parameters.AddWithValue("id", payment._id);
+                                cmd.Parameters.AddWithValue("time", payment.paymentTime);
+                                cmd.Parameters.AddWithValue("bill", payment.bill);
+
+                                con.Open();
+
+                                int result = cmd.ExecuteNonQuery();
+
+                                if (result > 0)
+                                {
+                                    channel.BasicAck(args.DeliveryTag, false);
+                                    Console.WriteLine("successfully updated the payment state on db!");
+                                }
                             }
                         }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+
                         break;
+
                     case "Exit":
-                        ExitMessage exit = JsonConvert.DeserializeObject<ExitMessage>(payload);
-
-                        using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
-                        using (SqlCommand cmd = new SqlCommand()
+                        try
                         {
-                            Connection = con,
-                            CommandType = System.Data.CommandType.Text,
-                            CommandText = $"UPDATE tblTicket SET ExitTime=@time WHERE IdTicket=@id"
-                        })
-                        {
-                            cmd.Parameters.AddWithValue("id", exit._id);
-                            cmd.Parameters.AddWithValue("exit", exit.exitTime);
+                            ExitMessage exit = JsonConvert.DeserializeObject<ExitMessage>(payload);
 
-                            con.Open();
-
-                            int result = cmd.ExecuteNonQuery();
-
-                            if (result > 0)
+                            using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
+                            using (SqlCommand cmd = new SqlCommand()
                             {
-                                channel.BasicAck(args.DeliveryTag, false);
+                                Connection = con,
+                                CommandType = System.Data.CommandType.Text,
+                                CommandText = $"UPDATE tblTicket SET ExitTime=@time WHERE IdTicket=@id"
+                            })
+                            {
+                                cmd.Parameters.AddWithValue("id", exit._id);
+                                cmd.Parameters.AddWithValue("time", exit.exitTime);
+
+                                con.Open();
+
+                                int result = cmd.ExecuteNonQuery();
+
+                                if (result > 0)
+                                {
+                                    channel.BasicAck(args.DeliveryTag, false);
+                                    Console.WriteLine("successfully set the exit time on db!");
+                                }
                             }
                         }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+
                         break;
+
                     case "ParkingSpots":
-                        ParkingSpotMessage spot = JsonConvert.DeserializeObject<ParkingSpotMessage>(payload);
-
-                        using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
-                        using (SqlCommand cmd = new SqlCommand()
+                        try
                         {
-                            Connection = con,
-                            CommandType = System.Data.CommandType.Text,
-                            CommandText = $"UPDATE tblPiazzole SET Timestamp=@time, Status=@status WHERE Id=@id"
-                        })
-                        {
-                            cmd.Parameters.AddWithValue("id", spot._id);
-                            cmd.Parameters.AddWithValue("status", spot.taken);
-                            cmd.Parameters.AddWithValue("time", spot.timestamp);
+                            ParkingSpotMessage spot = JsonConvert.DeserializeObject<ParkingSpotMessage>(payload);
 
-                            con.Open();
-
-                            int result = cmd.ExecuteNonQuery();
-
-                            if (result > 0)
+                            using (SqlConnection con = new SqlConnection(Secrets.SQL_CONNECTION_STRING))
+                            using (SqlCommand cmd = new SqlCommand()
                             {
-                                channel.BasicAck(args.DeliveryTag, false);
-                                Console.WriteLine("successfully updated the parking spot on db!");
+                                Connection = con,
+                                CommandType = System.Data.CommandType.Text,
+                                CommandText = $"UPDATE tblPiazzole SET Timestamp=@time, Status=@status WHERE Id=@id"
+                            })
+                            {
+                                cmd.Parameters.AddWithValue("id", spot._id);
+                                cmd.Parameters.AddWithValue("status", spot.taken);
+                                cmd.Parameters.AddWithValue("time", spot.timestamp);
+
+                                con.Open();
+
+                                int result = cmd.ExecuteNonQuery();
+
+                                if (result > 0)
+                                {
+                                    channel.BasicAck(args.DeliveryTag, false);
+                                    Console.WriteLine("successfully updated the parking spot state on db!");
+                                }
                             }
                         }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+
                         break;
+
                     default:
                         break;
                 }

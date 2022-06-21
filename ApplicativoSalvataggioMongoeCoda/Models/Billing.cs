@@ -11,10 +11,6 @@ namespace ApplicativoSalvataggioMongoeCoda.Models
     {
         [BsonId]
         public int id { get; set; }
-        public float halfanhour { get; set; }
         public float onehour { get; set; }
-        public float threehours { get; set; }
-        public float sixhours { get; set; }
-        public float daily { get; set; }
     }
 }

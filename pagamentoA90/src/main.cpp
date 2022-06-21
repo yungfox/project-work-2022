@@ -6,14 +6,18 @@
 #include <PubSubClient.h>
 #include <time.h>
 #include <ArduinoJson.h>
-
-
+#include <LiquidCrystal.h>
+#include <Wire.h>
 
 /* #endregion */
 /* #region  Definizione Pin */
 //#define debug
 #define pinRst 22
 #define pinSs 5
+#define ledpinblu 33
+#define ledpinverde 12
+#define ledpinrosso 32
+
 /* #endregion */
 /* #region  Definizioni Variabili Per Cconnessione Wifi e Server Mqtt */
 // initialize constants
@@ -59,10 +63,15 @@ void callback(char *topic, byte *payload, unsigned int length)
   //const char *Dispositivo = doc["Dispositivo"]; // "ESP32Uscita"
   if(stato==1)
   {
-    digitalWrite(12,HIGH);
-    delay(1000);
-    digitalWrite(12,LOW);
+    digitalWrite(ledpinverde,HIGH);
+    digitalWrite(ledpinrosso,LOW);
   }
+  else
+  {
+     digitalWrite(ledpinrosso,HIGH);
+     digitalWrite(ledpinverde,LOW);
+  }
+  digitalWrite(ledpinblu,LOW);
   Serial.println(stato);
   Serial.println("-----------------------");
 }
@@ -73,12 +82,15 @@ void InviaDati(char *datiEntrata)
   // client.connect("SbarraUscita");
   if (client.connected())
   {
-    char clientid[12];
-    String sbarra = "ESP32Uscita";
-    sbarra.toCharArray(clientid, 12);
+    digitalWrite(ledpinrosso,LOW);
+    digitalWrite(ledpinverde,LOW);
+    digitalWrite(ledpinblu,HIGH);
+    char clientid[15];
+    String sbarra = "ESP32Pagamento";
+    sbarra.toCharArray(clientid, 15);
     // Serial.println(clientid);
 
-    char js[60];
+    char js[70];
     js[0] = '\0';
     strcat(js, "{\"_id\":\"");
     strcat(js, datiEntrata);
@@ -128,8 +140,9 @@ void LetturaRFID()
 // Setup
 void setup()
 {
-  pinMode(12, OUTPUT);
-  pinMode(32, OUTPUT);
+  pinMode(ledpinverde, OUTPUT);
+  pinMode(ledpinrosso, OUTPUT);
+  pinMode(ledpinblu, OUTPUT);
 
   Serial.begin(9600); // Initiate a serial communication
   SPI.begin();        // Initiate  SPI bus

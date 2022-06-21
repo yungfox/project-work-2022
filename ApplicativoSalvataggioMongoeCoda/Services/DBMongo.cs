@@ -1,4 +1,5 @@
 ﻿using ApplicativoSalvataggioMongoeCoda.Models;
+using ApplicativoSalvataggioMongoeCoda.Services;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
@@ -13,6 +14,7 @@ namespace ApplicativoSalvataggioMongoeCoda
     {
         public MongoClient client;
         public IMongoDatabase dbParking;
+        static AzureFunctionService azureFunctionService = new AzureFunctionService();
         //public IMongoCollection <Biglietto> collection;
 
         public DBMongo()
@@ -156,7 +158,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 {
                     var collection = dbParking.GetCollection<Billing>("Billing");
                     var filter = Builders<Billing>.Filter.Eq("id", 1);
-                    var update = Builders<Billing>.Update.Set("onehour", myBill.onehour);
+                    var update = Builders<Billing>.Update.Set("onehour", Math.Round(myBill.onehour,2));
                     collection.UpdateOne(filter, update);
                 }
                 catch (Exception ex)
@@ -341,6 +343,8 @@ namespace ApplicativoSalvataggioMongoeCoda
                 if (collection2.Count(_ => true) == 0)
                 {
                     await CreateBilling();
+                    var res = await azureFunctionService.GetUpdatedBillings();
+                    await UpdateBilling(res);
                 }
             }
             catch (Exception ex)

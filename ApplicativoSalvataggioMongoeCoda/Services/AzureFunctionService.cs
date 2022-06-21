@@ -53,6 +53,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
+                    return null;
                 }
                 
             });

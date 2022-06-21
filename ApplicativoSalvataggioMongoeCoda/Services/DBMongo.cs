@@ -33,7 +33,8 @@ namespace ApplicativoSalvataggioMongoeCoda
                     Ticket myTicket = new()
                     {
                         IdTicket = IDTicket,
-                        EntryTime = entrytime
+                        EntryTime = entrytime,
+                        Bill = 0
                     };
                     collection.InsertOne(myTicket);
                     return true;

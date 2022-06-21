@@ -205,10 +205,19 @@ namespace ApplicativoSalvataggioMongoeCoda
         {
             return Task.Run(() =>
             {
-                var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
-                var filter = Builders<ParkingSpot>.Filter.Eq("Status", true);
-                var num = (int) collection.Find(filter).Count();
-                return num;
+                try
+                {
+                    var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
+                    var filter = Builders<ParkingSpot>.Filter.Eq("Status", true);
+                    var num = (int)collection.Find(filter).Count();
+                    return num;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return -1;
+                }
+                
             });
         }
         //Metodi per popolare da zero il db Mongo
@@ -216,14 +225,21 @@ namespace ApplicativoSalvataggioMongoeCoda
         {
             return Task.Run(() =>
             {
-                var collection = dbParking.GetCollection<Billing>("Billing");
-                Billing myBilling;
-                myBilling = new()
+                try
                 {
-                    id = 1,
-                    onehour = 0
-                };
-                collection.InsertOne(myBilling);
+                    var collection = dbParking.GetCollection<Billing>("Billing");
+                    Billing myBilling;
+                    myBilling = new()
+                    {
+                        id = 1,
+                        onehour = 0
+                    };
+                    collection.InsertOne(myBilling);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             });
         }
         public Task CreateParkingSpot()
@@ -304,6 +320,33 @@ namespace ApplicativoSalvataggioMongoeCoda
                     Console.WriteLine(ex);
                 }
             });
+        }
+        public async void SeedDatabase()
+        {
+            try
+            {
+                var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
+                if (collection.Count(_ => true) == 0)
+                {
+                    await CreateParkingSpot();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            try
+            {
+                var collection2 = dbParking.GetCollection<Billing>("Billing");
+                if (collection2.Count(_ => true) == 0)
+                {
+                    await CreateBilling();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

@@ -1,22 +1,20 @@
-"use strict";
+import { HubConnectionBuilder, HttpTransportType } from '@microsoft/signalr'
 
-var connection = new signalR.HubConnectionBuilder().withUrl("/parkingHub").build();
-
-connection.on("ReceiveMessage", function (user, message) {
-    //callback
-});
-
-connection.start().then(function () {
-    console.log('connesso a signalr')
-}).catch(function (err) {
-    return console.error(err.toString());
-});
-
-// document.getElementById("sendButton").addEventListener("click", function (event) {
-//     var user = document.getElementById("userInput").value;
-//     var message = document.getElementById("messageInput").value;
-//     connection.invoke("SendMessage", user, message).catch(function (err) {
-//         return console.error(err.toString());
-//     });
-//     event.preventDefault();
-// });
+export default {
+    initSignalR: async () => {
+        let hub = new HubConnectionBuilder()
+                    .withUrl('/parkingHub', { 
+                        skipNegotiation: true,
+                        transport: HttpTransportType.WebSockets
+                    })
+                    .build()
+        
+        hub.on('ReceiveMessage', message => {
+            console.log(`new message: ${message}`)
+        })
+        
+        await hub.start()
+            .then(() => console.log('connected to signalr'))
+            .catch(err => console.error(err.toString()))
+    }
+}

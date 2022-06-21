@@ -72,27 +72,19 @@ namespace ApplicativoSalvataggioMongoeCoda
                     float price = 0;
                     switch (diff.TotalMinutes)
                     {
-                        case <= 15:
+                        case <= 30:
                             price = 0;
                             break;
-                        case <= 30:
-                            price = document2.halfanhour;
+                        case < 60:
+                            price = document2.onehour * 1;
                             break;
-                        case <= 60:
-                            price = document2.onehour;
-                            break;
-                        case <= 180:
-                            price = document2.threehours;
-                            break;
-                        case <= 360:
-                            price = document2.sixhours;
-                            break;
-                        case <= 1440:
-                            price = Convert.ToInt32(diff.TotalDays) * document2.daily;
+                        case >= 60:
+                            price = document2.onehour * (int)diff.TotalHours;
                             break;
                         default:
                             break;
                     }
+                    
                     filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                     var update = Builders<Ticket>.Update.Set("PaymentTime", paymentime).Set("Bill", price + document.Bill);
                     collection.UpdateOne(filter, update);
@@ -164,11 +156,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 {
                     var collection = dbParking.GetCollection<Billing>("Billing");
                     var filter = Builders<Billing>.Filter.Eq("id", 1);
-                    var update = Builders<Billing>.Update.Set("halfanhour", myBill.halfanhour)
-                                                    .Set("onehour", myBill.onehour)
-                                                    .Set("threehours", myBill.threehours)
-                                                    .Set("sixhours", myBill.sixhours)
-                                                    .Set("daily", myBill.daily);
+                    var update = Builders<Billing>.Update.Set("onehour", myBill.onehour);
                     collection.UpdateOne(filter, update);
                 }
                 catch (Exception ex)
@@ -233,11 +221,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 myBilling = new()
                 {
                     id = 1,
-                    halfanhour = 0,
-                    onehour = 0,
-                    threehours = 0,
-                    sixhours = 0,
-                    daily = 0
+                    onehour = 0
                 };
                 collection.InsertOne(myBilling);
             });

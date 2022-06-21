@@ -10,7 +10,7 @@ namespace ApplicativoSalvataggioMongoeCoda
         static AzureFunctionService azureFunctionService = new AzureFunctionService();
         static async Task Main(string[] args)
         {
-            MqttService mqtt = new MqttService("172.16.5.4", "#");
+            MqttService mqtt = new MqttService("localhost", "#");
             mqtt.Subscribe();
 
             //var res = await azureFunctionService.GetUpdatedBillings();

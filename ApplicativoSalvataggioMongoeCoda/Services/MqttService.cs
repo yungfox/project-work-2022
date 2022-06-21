@@ -29,7 +29,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
             this.topic = topic;
             this.db = new DBMongo();
-            this.queue = new QueueService("172.16.5.4", "Parking");
+            this.queue = new QueueService("localhost", "Parking");
         }
 
         public async void Send(string payload, string topic)

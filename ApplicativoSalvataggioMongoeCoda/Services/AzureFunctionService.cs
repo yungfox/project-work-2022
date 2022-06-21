@@ -34,7 +34,18 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         };
                         myListBill.Add(myBill);
                     }
-                    return myListBill[0];
+                    myBill = DateTime.UtcNow.DayOfWeek switch
+                    {
+                        DayOfWeek.Sunday => myListBill[0],
+                        DayOfWeek.Monday => myListBill[1],
+                        DayOfWeek.Tuesday => myListBill[2],
+                        DayOfWeek.Wednesday => myListBill[3],
+                        DayOfWeek.Thursday => myListBill[4],
+                        DayOfWeek.Friday => myListBill[5],
+                        DayOfWeek.Saturday => myListBill[6],
+                        _ => null,
+                    };
+                    return myBill;
                 }
             });
         }

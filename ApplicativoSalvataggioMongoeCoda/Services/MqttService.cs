@@ -84,7 +84,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex);
+                            Console.WriteLine(ex.Message);
                         }
                     }
                     else
@@ -114,7 +114,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine(ex);
+                                        Console.WriteLine(ex.Message);
                                     }
                                 }
                                 break;
@@ -140,7 +140,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine(ex);
+                                        Console.WriteLine(ex.Message);
                                     }
                                 }
                                 break;
@@ -167,7 +167,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine(ex);
+                                        Console.WriteLine(ex.Message);
                                     }
                                 }
                                 break;

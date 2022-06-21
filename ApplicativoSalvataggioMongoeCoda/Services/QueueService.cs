@@ -135,6 +135,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         }
                         catch (Exception ex)
                         {
+                            CheckForPrimaryKeyViolation(ex, args);
                             Console.WriteLine(ex.Message);
                         }
 
@@ -170,6 +171,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         }
                         catch (Exception ex)
                         {
+                            CheckForPrimaryKeyViolation(ex, args);
                             Console.WriteLine(ex.Message);
                         }
 
@@ -204,6 +206,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         }
                         catch (Exception ex)
                         {
+                            CheckForPrimaryKeyViolation(ex, args);
                             Console.WriteLine(ex.Message);
                         }
 
@@ -239,6 +242,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         }
                         catch (Exception ex)
                         {
+                            CheckForPrimaryKeyViolation(ex, args);
                             Console.WriteLine(ex.Message);
                         }
 
@@ -260,6 +264,15 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+            }
+        }
+
+        private void CheckForPrimaryKeyViolation(Exception ex, BasicDeliverEventArgs args)
+        {
+            if (ex is SqlException dbEx)
+            {
+                if (dbEx.Number == 2627)
+                    channel.BasicAck(args.DeliveryTag, false);
             }
         }
     }

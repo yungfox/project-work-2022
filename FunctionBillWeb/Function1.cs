@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 
-namespace FunctionBill
+namespace FunctionBillWeb
 {
-    class Program
+    public static class Function1
     {
-        static void Main(string[] args)
+        [FunctionName("Function1")]
+        public static void Run([TimerTrigger("0 30 4 * * *")]TimerInfo myTimer, ILogger log)
         {
+
             double guadagnivoluti = 1500;
             double guadagniprecedenti = 0;
             double billprecedente = 0;
@@ -88,7 +90,8 @@ namespace FunctionBill
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex);
             }
-            
+
+            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         }
     }
 }

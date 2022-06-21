@@ -135,7 +135,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex);
+                            Console.WriteLine(ex.Message);
                         }
 
                         break;
@@ -170,7 +170,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex);
+                            Console.WriteLine(ex.Message);
                         }
 
                         break;
@@ -204,7 +204,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex);
+                            Console.WriteLine(ex.Message);
                         }
 
                         break;
@@ -239,7 +239,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex);
+                            Console.WriteLine(ex.Message);
                         }
 
                         break;
@@ -252,8 +252,15 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
         private async Task WriteOnCloud(string payload)
         {
-            Message message = new Message(Encoding.UTF8.GetBytes(payload));
-            await azureClient.SendAsync("Parcheggio", message);
+            try
+            {
+                Message message = new Message(Encoding.UTF8.GetBytes(payload));
+                await azureClient.SendAsync("Parking", message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

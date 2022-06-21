@@ -74,7 +74,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                     float price = 0;
                     switch (diff.TotalMinutes)
                     {
-                        case <= 30:
+                        case <= 15:
                             price = 0;
                             break;
                         case < 60:
@@ -112,8 +112,8 @@ namespace ApplicativoSalvataggioMongoeCoda
                     var document = collection.Find(filter).First();
                     System.TimeSpan diff = exitime.Subtract(document.PaymentTime);
                     //se sono passati meno di 15 minuti dal pagamento il cliente può uscire
-
-                    if (diff.TotalMinutes <= 15)
+                    //oppure se sono passati meno di 15 minuti dall'entrata
+                    if (diff.TotalMinutes <= 15 || exitime.Subtract(document.EntryTime).TotalMinutes <= 15)
                     {
                         //Console.WriteLine("sotto i 15 min");
                         filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
@@ -128,7 +128,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    Console.WriteLine(ex.Message);
                     return false;
                 }
             });
@@ -320,7 +320,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    Console.WriteLine(ex.Message) ;
                 }
             });
         }

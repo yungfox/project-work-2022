@@ -34,6 +34,19 @@
 
 <script>
 export default {
-    name: 'App'
+    name: 'App',
+    mounted() {
+        var connection = new signalR.HubConnectionBuilder().withUrl("/parkingHub").build();
+
+        connection.on("ReceiveMessage", function (user, message) {
+            //callback
+        });
+
+        connection.start().then(function () {
+            console.log('connesso a signalr')
+        }).catch(function (err) {
+            return console.error(err.toString());
+        });
+    }
 }
 </script>

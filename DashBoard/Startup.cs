@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VueCliMiddleware;
+using DashBoard.Hubs;
 
 namespace DashBoard
 {
@@ -25,6 +26,7 @@ namespace DashBoard
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSignalR();
             services.AddControllers();
             services.AddSpaStaticFiles(configuration =>
             {
@@ -47,6 +49,7 @@ namespace DashBoard
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ParkingHub>("/parkingHub");
             });
 
             app.UseSpa(spa =>

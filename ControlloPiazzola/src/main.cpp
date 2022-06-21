@@ -274,6 +274,7 @@ if( distanza1 > sogliaControllo ){
         invioDati1(); 
         statoOccupato1=true;
         statoinviato1=false;
+        delay(1000);
     }
     // accendo il LED verde, che indica la disponibilità del parcheggio 
     digitalWrite(Verde1,HIGH);
@@ -287,6 +288,7 @@ if( distanza1 > sogliaControllo ){
         invioDati1(); 
         statoinviato1=true;
         statoOccupato1=false;
+        delay(1000);
     }
 
   }
@@ -310,6 +312,7 @@ if (distanza2 == 0){
         invioDati2(); 
         statoOccupato2=true;
         statoinviato2=false;
+        delay(1000);
     }
   }
   else{ 
@@ -318,6 +321,7 @@ if (distanza2 == 0){
         invioDati2(); 
         statoinviato2=true;
         statoOccupato2=false;
+        delay(1000);
     }
     // accendo il LED verde, che indica la disponibilità del parcheggio 
     digitalWrite(Verde2,HIGH);

@@ -13,9 +13,9 @@ namespace ApplicativoSalvataggioMongoeCoda
             //creo i database in caso non ci siano ancora
             dBMongo.SeedDatabase();
 
-            //MqttService mqtt = new MqttService("localhost", "#");
-            //mqtt.Subscribe();
-          
+            MqttService mqtt = new MqttService("localhost", "#");
+            mqtt.Subscribe();
+
             //var res = await azureFunctionService.GetUpdatedBillings();
             //await dBMongo.UpdateBilling(res);
 

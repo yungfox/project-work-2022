@@ -95,8 +95,10 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         {
                             case "ESP32Uscita":
                                 bool exitResult = await db.Exit(message._id, now);
-                                string json = $"{{\"stato\":{Convert.ToInt32(exitResult)}}}";
-                                Send(json, "exit/gatewaytodevice");
+                                string exitResponseJson = $"{{\"stato\":{Convert.ToInt32(exitResult)}}}";
+
+                                Send(exitResponseJson, "exit/gatewaytodevice");
+
                                 if (exitResult)
                                 {
                                     try
@@ -119,6 +121,10 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
                             case "ESP32Entrata":
                                 bool entryResult = await db.Entry(message._id, now);
+                                string entryResponseJson = $"{{\"stato\":{Convert.ToInt32(entryResult)}}}";
+
+                                Send(entryResponseJson, "entry/gatewaytodevice");
+
                                 if (entryResult)
                                 {
                                     try
@@ -141,6 +147,10 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
                             case "TotemPagamento":
                                 dynamic paymentResult = await db.Payment(message._id, now);
+                                string paymentResponseJson = $"{{\"stato\":{Convert.ToInt32(paymentResult.Status)}}}";
+
+                                Send(paymentResponseJson, "payment/gatewaytodevice");
+
                                 if (paymentResult.Status)
                                 {
                                     try

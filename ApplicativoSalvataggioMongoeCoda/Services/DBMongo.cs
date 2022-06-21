@@ -102,7 +102,7 @@ namespace ApplicativoSalvataggioMongoeCoda
         }
         public Task<bool> Exit(string IDTicket, DateTime exitime)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 try
                 {
@@ -115,12 +115,13 @@ namespace ApplicativoSalvataggioMongoeCoda
 
                     if (diff.TotalMinutes <= 15)
                     {
-                        Console.WriteLine("sotto i 15 min");
+                        //Console.WriteLine("sotto i 15 min");
                         filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
                         var update = Builders<Ticket>.Update.Set("ExitTime", exitime);
                         var queryResult = collection.UpdateOne(filter, update);
                         //non è necessario scrivere l'uscita visto che viene cancellata subito
-                        //DeleteRecordTicket(IDTicket);
+                        await DeleteRecordTicket(IDTicket);
+
                         return true;
                     }
                     return false;

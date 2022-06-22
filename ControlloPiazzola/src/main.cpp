@@ -34,8 +34,8 @@ bool occupato2 = false;
 
 // definisco ciò che verrà saacritto all'interno del JSON per dichiarare lo stato del parcheggio. 
 // Definisco come char per facilitare l'inserimento nel JSON, per evitare errori di conversione
-char *statoOccupato = "1";
-char *statoLibero = "0";
+char *statoOccupato = "true";
+char *statoLibero = "false";
 
 // variabile numerica che serve per la conversione del valore temporale misurato dai sensori, che venendo diviso per questa variabile,
 // verrà convertito in misura (cm)
@@ -115,9 +115,9 @@ void invioDati1(){
     js[0] = '\0';
     strcat(js, "{\"_id\":\"");
     strcat(js, datiPiazzola1);
-    strcat(js, "\",\"stato\":\"");
+    strcat(js, "\",\"Status\":");
     strcat(js, stato);
-    strcat(js, "\"}");
+    strcat(js, "}");
 
     // eseguo l'operazione di publish del file verso il broker    
     client.publish(TOPIC1, js);
@@ -138,7 +138,7 @@ void invioDati2(){
   datiPiazzola2[0]='\0';
   id.toCharArray(datiPiazzola2, 4);
   char *stato;
-  // in caso il client fosse connesso, posso procedere con l'invio dei dati
+  // in caso il client fussse connesso, posso procedere con l'invio dei dati
   if (client.connected())
   {
     char clientid[12];
@@ -154,9 +154,9 @@ void invioDati2(){
     js[0] = '\0';
     strcat(js, "{\"_id\":\"");
     strcat(js, datiPiazzola2);
-    strcat(js, "\",\"stato\":\"");
+    strcat(js, "\",\"Status\":");
     strcat(js, stato);
-    strcat(js, "\"}");
+    strcat(js, "}");
 
     // eseguo l'operazione di publish del file verso il broker    
     client.publish(TOPIC2, js);
@@ -290,6 +290,8 @@ if( distanza1 > sogliaControllo ){
         statoOccupato1=false;
         delay(1000);
     }
+    digitalWrite(Rosso1,HIGH);
+    digitalWrite(Verde1,LOW);
 
   }
 
@@ -314,6 +316,8 @@ if (distanza2 == 0){
         statoinviato2=false;
         delay(1000);
     }
+    digitalWrite(Rosso2,HIGH);
+    digitalWrite(Verde2,LOW);
   }
   else{ 
     occupato2 = true;

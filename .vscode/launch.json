@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "c:/Users/Corso6/Documents/GitHub/project-work-2022/BarraEntrataRFID",
-      "program": "c:/Users/Corso6/Documents/GitHub/project-work-2022/BarraEntrataRFID/build/Debug/outDebug",
+      "cwd": "c:/Users/Corso6/Documents/GitHub/project-work-2022/ControlloPiazzola",
+      "program": "c:/Users/Corso6/Documents/GitHub/project-work-2022/ControlloPiazzola/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

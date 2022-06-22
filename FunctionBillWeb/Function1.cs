@@ -13,7 +13,7 @@ namespace FunctionBillWeb
         public static void Run([TimerTrigger("0 30 4 * * *")]TimerInfo myTimer, ILogger log)
         {
 
-            double guadagnivoluti = 1500;
+            double guadagnivoluti = 900;
             double guadagniprecedenti = 0;
             double billprecedente = 0;
             try

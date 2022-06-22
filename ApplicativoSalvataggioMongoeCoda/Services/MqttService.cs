@@ -95,7 +95,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         {
                             case "ESP32Uscita":
                                 dynamic exitResult = await db.Exit(message._id, now);
-                                string exitResponseJson = $"{{\"stato\":{Convert.ToInt32(exitResult.Status)},\"Spot\":{Convert.ToInt32(exitResult.Spot)}}}";
+                                string exitResponseJson = $"{{\"stato\":{Convert.ToInt32(exitResult.Status)},\"spot\":{Convert.ToInt32(exitResult.Spot)}}}";
 
                                 Send(exitResponseJson, "exit/gatewaytodevice");
 

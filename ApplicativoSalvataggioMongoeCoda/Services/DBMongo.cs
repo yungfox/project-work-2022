@@ -175,12 +175,13 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
-        public Task UpdateBilling(Billing myBill)
+        public Task UpdateBilling()
         {
-            return Task.Run(() =>
+            return Task.Run(async() =>
             {
                 try
                 {
+                    var myBill = await  azureFunctionService.GetUpdatedBillings();
                     var collection = dbParking.GetCollection<Billing>("Billing");
                     var filter = Builders<Billing>.Filter.Eq("id", 1);
                     var update = Builders<Billing>.Update.Set("onehour", Math.Round(myBill.onehour,2));

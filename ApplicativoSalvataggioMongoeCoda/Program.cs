@@ -16,11 +16,6 @@ namespace ApplicativoSalvataggioMongoeCoda
             MqttService mqtt = new MqttService("localhost", "#");
             mqtt.Subscribe();
 
-            //var res = await azureFunctionService.GetUpdatedBillings();
-            //await dBMongo.UpdateBilling(res);
-
-            //QueueService queue = new QueueService("localhost", "Parking");
-            //queue.Subscribe("Parking");
 
             Console.ReadLine();
         }

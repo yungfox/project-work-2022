@@ -29,6 +29,10 @@ namespace ApplicativoSalvataggioMongoeCoda
             {
                 try
                 {
+                    if (DateTime.Now.Hour<6)
+                    {
+                        return false;
+                    }
                     var collection = dbParking.GetCollection<Ticket>("Ticket");
                     Ticket myTicket = new()
                     {
@@ -53,6 +57,10 @@ namespace ApplicativoSalvataggioMongoeCoda
                 dynamic res;
                 try
                 {
+                    if (DateTime.Now.Hour < 6)
+                    {
+                        return new { Status = false, IstantBill = -1, TotalBill = -1 };
+                    }
                     var collection = dbParking.GetCollection<Ticket>("Ticket");
                     //calcolo quanto tempo è passato da quando sono entrato a quando voglio pagare
                     var filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);
@@ -107,6 +115,10 @@ namespace ApplicativoSalvataggioMongoeCoda
             {
                 try
                 {
+                    if (DateTime.Now.Hour < 6)
+                    {
+                        return false;
+                    }
                     var collection = dbParking.GetCollection<Ticket>("Ticket");
                     //calcolo quanto tempo è passato da quando il cliente ha pagato a quando è arrivato alla sbarra
                     var filter = Builders<Ticket>.Filter.Eq("_id", IDTicket);

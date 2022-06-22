@@ -5,10 +5,11 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <Wire.h>
+#include <LiquidCrystal.h>
 
 #define debug
 /* #endregion */
-
 
 /* #region  Definizione Pin */
 //#define debug
@@ -16,15 +17,19 @@
 // pin rst per la lettura dell Rfid
 #define pinRst 22
 #define pinSs 5
-// pin led blu che segnala che il pagamento è in attesa di ricezione
 
 // pin led verde che segnala che il pagamento è stato effettuato
-#define ledpinverde 12
+#define ledpinverde 17
 // pin led rosso che segnala che il pagamento è stato  respinto
-#define ledpinrosso 14
+#define ledpinrosso 16
 bool bloccainvio = false;
-bool barraAlzata = false;
-int contatoreBarra = 0;
+
+int posti = 50;
+//bool primavolta=false;
+
+const int rs = 13, en = 12, d4 = 14, d5 = 27, d6 = 26, d7 = 25;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
 /* #endregion */
 /* #region  Definizioni Variabili Per Cconnessione Wifi e Server Mqtt */
 // Ricevo le credenziali di accesso per wifi e informazioni sensibili dalla libreria secret.h definita all'interno del progetto
@@ -71,7 +76,7 @@ void reconnect()
     delay(2000);
   }
   client.subscribe(TOPIC_RECIEVE);
-  bloccainvio=false;
+  bloccainvio = false;
 }
 /* #endregion */
 
@@ -90,7 +95,7 @@ void callback(char *topic, byte *payload, unsigned int length)
 #ifdef debug
   Serial.print(js);
 #endif
-  StaticJsonDocument<16> doc;
+  StaticJsonDocument<32> doc;
 
   DeserializationError error = deserializeJson(doc, js, length);
 
@@ -104,6 +109,11 @@ void callback(char *topic, byte *payload, unsigned int length)
   }
 
   int stato = doc["stato"]; // "F4 AA B2 89"
+  int postiRicezione = 0;
+  postiRicezione = doc["spot"]; 
+  if(postiRicezione !=0){
+    posti = postiRicezione;
+  }
   // const char *Dispositivo = doc["Dispositivo"]; // "ESP32Uscita"
   if (stato == 1)
   {
@@ -111,17 +121,23 @@ void callback(char *topic, byte *payload, unsigned int length)
     digitalWrite(ledpinrosso, LOW);
     delay(5000);
     digitalWrite(ledpinverde, LOW);
-
   }
   else
   {
     digitalWrite(ledpinrosso, HIGH);
     digitalWrite(ledpinverde, LOW);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Errore");
+    lcd.setCursor(0, 1);
+    lcd.print("Ticket Usato");
     delay(2000);
     digitalWrite(ledpinrosso, LOW);
+    lcd.clear();
+    
   }
-  
-  bloccainvio=false;
+
+  bloccainvio = false;
 
 //  digitalWrite(ledpinblu, LOW);
 #ifdef debug
@@ -192,10 +208,13 @@ void LetturaRFID()
   IdBiglietto.toUpperCase();
   char charbuffer[30];
   IdBiglietto.toCharArray(charbuffer, 30, 1);
-  if( !bloccainvio){
+  if(!bloccainvio){
     InviaDati(charbuffer);
-    bloccainvio= true;
-}
+    bloccainvio = true;
+  }
+  
+   
+  
 }
 
 /* #endregion */
@@ -203,9 +222,11 @@ void LetturaRFID()
 // Setup
 void setup()
 {
+
+  lcd.begin(16, 2);
+
   pinMode(ledpinverde, OUTPUT);
   pinMode(ledpinrosso, OUTPUT);
- 
 
   Serial.begin(9600); // Initiate a serial communication
   SPI.begin();        // Initiate  SPI bus
@@ -237,12 +258,17 @@ void setup()
     //<Serial.println("Retrying connection!!!");
   }
   digitalWrite(ledpinrosso, HIGH);
+  
+ 
 }
 /* #endregion */
 /* #region  Loop */
 void loop()
 {
-
+  lcd.setCursor(0, 0);
+  lcd.print("POSTI DISP.");
+  lcd.setCursor(0, 1);
+  lcd.print(posti);
   // richiamo la funzione di lettura
   LetturaRFID();
   // verifico che il client sia conensso e iscrivo

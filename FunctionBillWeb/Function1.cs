@@ -64,6 +64,9 @@ namespace FunctionBillWeb
                 if (billodierno > 2.5)
                 {
                     billodierno = 2.5;
+                }else if (billodierno < 0.5)
+                {
+                    billodierno = 0.5;
                 }
                 billodierno = Math.Round(billodierno, 2);
 

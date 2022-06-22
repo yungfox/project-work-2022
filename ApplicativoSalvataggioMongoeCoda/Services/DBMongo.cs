@@ -23,16 +23,20 @@ namespace ApplicativoSalvataggioMongoeCoda
             this.dbParking = client.GetDatabase("Parking");
         }
 
-        public Task<bool> Entry(string IDTicket, DateTime entrytime)
+        public Task<dynamic> Entry(string IDTicket, DateTime entrytime)
         {
-            return Task.Run(() =>
+            return Task.Run(async() =>
             {
+                dynamic res;
+                int ParkingSpot = 0;
                 try
                 {
                     if (DateTime.Now.Hour<6)
                     {
-                        return false;
+                        res = new { Status = false, FreeParkingSpot = -1 };
+                        return res;
                     }
+                    ParkingSpot = await GetFreeParkingSpot();
                     var collection = dbParking.GetCollection<Ticket>("Ticket");
                     Ticket myTicket = new()
                     {
@@ -41,12 +45,14 @@ namespace ApplicativoSalvataggioMongoeCoda
                         Bill = 0
                     };
                     collection.InsertOne(myTicket);
-                    return true;
+                    res = new { Status = true, FreeParkingSpot = ParkingSpot };
+                    return res;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                    return false;
+                    res = new { Status = false, FreeParkingSpot = -1 };
+                    return res;
                 }
             });
         }
@@ -217,14 +223,14 @@ namespace ApplicativoSalvataggioMongoeCoda
                 }
             });
         }
-        public Task<int> GetBusyParkingSpot()
+        public Task<int> GetFreeParkingSpot()
         {
             return Task.Run(() =>
             {
                 try
                 {
                     var collection = dbParking.GetCollection<ParkingSpot>("ParkingSpot");
-                    var filter = Builders<ParkingSpot>.Filter.Eq("Status", true);
+                    var filter = Builders<ParkingSpot>.Filter.Eq("Status", false);
                     var num = (int)collection.Find(filter).Count();
                     return num;
                 }

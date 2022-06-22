@@ -33,7 +33,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 {
                     if (DateTime.Now.Hour<6)
                     {
-                        res = new { Status = false, FreeParkingSpot = -1 };
+                        res = new { Status = false, Spot = ParkingSpot };
                         return res;
                     }
                     ParkingSpot = await GetFreeParkingSpot();
@@ -45,13 +45,13 @@ namespace ApplicativoSalvataggioMongoeCoda
                         Bill = 0
                     };
                     collection.InsertOne(myTicket);
-                    res = new { Status = true, FreeParkingSpot = ParkingSpot };
+                    res = new { Status = true, Spot = ParkingSpot };
                     return res;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                    res = new { Status = false, FreeParkingSpot = -1 };
+                    res = new { Status = false, Spot = ParkingSpot };
                     return res;
                 }
             });

@@ -37,6 +37,11 @@ namespace ApplicativoSalvataggioMongoeCoda
                         return res;
                     }
                     ParkingSpot = await GetFreeParkingSpot();
+                    if (ParkingSpot == 0)
+                    {
+                        res = new { Status = false, Spot = ParkingSpot };
+                        return res;
+                    }
                     var collection = dbParking.GetCollection<Ticket>("Ticket");
                     Ticket myTicket = new()
                     {

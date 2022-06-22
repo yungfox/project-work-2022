@@ -369,7 +369,6 @@ namespace ApplicativoSalvataggioMongoeCoda
                 if (collection2.Count(_ => true) == 0)
                 {
                     await CreateBilling();
-                    var res = await azureFunctionService.GetUpdatedBillings();
                     await UpdateBilling();
                 }
             }

@@ -4,7 +4,6 @@
 #include <MFRC522.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
-//#include <time.h>
 #include <ArduinoJson.h>
 
 #define debug
@@ -19,10 +18,6 @@
 #define pinSs 5
 // pin led blu che segnala che il pagamento è in attesa di ricezione
 
-int conversione = 58.31;
-
-#define pinTrigger 32
-#define pinEcho 33
 // pin led verde che segnala che il pagamento è stato effettuato
 #define ledpinverde 12
 // pin led rosso che segnala che il pagamento è stato  respinto
@@ -112,16 +107,20 @@ void callback(char *topic, byte *payload, unsigned int length)
   // const char *Dispositivo = doc["Dispositivo"]; // "ESP32Uscita"
   if (stato == 1)
   {
-    barraAlzata= true;
     digitalWrite(ledpinverde, HIGH);
     digitalWrite(ledpinrosso, LOW);
-   
+    delay(5000);
+    digitalWrite(ledpinverde, LOW);
+
   }
   else
   {
     digitalWrite(ledpinrosso, HIGH);
     digitalWrite(ledpinverde, LOW);
+    delay(2000);
+    digitalWrite(ledpinrosso, LOW);
   }
+  
   bloccainvio=false;
 
 //  digitalWrite(ledpinblu, LOW);
@@ -206,9 +205,6 @@ void setup()
 {
   pinMode(ledpinverde, OUTPUT);
   pinMode(ledpinrosso, OUTPUT);
-  pinMode(pinTrigger,OUTPUT);
-  pinMode(pinEcho,INPUT);
-  /* pinMode(ledpinblu, OUTPUT);*/
  
 
   Serial.begin(9600); // Initiate a serial communication
@@ -246,29 +242,7 @@ void setup()
 /* #region  Loop */
 void loop()
 {
- // if (barraAlzata && (contatoreBarra <=30) ){
-  digitalWrite(pinTrigger, LOW);
-  digitalWrite(pinTrigger, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(pinTrigger, LOW);
-    
-  // Calcolo del tempo attraverso il pin di echo, quindi il tempo che ci permette di calcolare la distanza del primo oggetto 
-  // che il nostro sensore ha intercettato
-  long durata1 = pulseIn(pinEcho, HIGH);
- 
 
-  if (barraAlzata) {
-    
-    long distanza1 = durata1/conversione;
-    Serial.println(distanza1);
-  if(distanza1 >= 15){
-    barraAlzata = false;
-    Serial.println(barraAlzata);
-  }
-  }
-  //contatoreBarra = contatoreBarra+1;
-
-  
   // richiamo la funzione di lettura
   LetturaRFID();
   // verifico che il client sia conensso e iscrivo

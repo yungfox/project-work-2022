@@ -26,7 +26,10 @@ namespace DashBoard
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();
+            services.AddCors(options => options.AddPolicy("ApiCorsPolicy", builder =>
+            {
+                builder.WithOrigins("localhost").AllowAnyMethod().AllowAnyHeader();
+            }));
             services.AddSignalR();
             services.AddControllers();
             services.AddSpaStaticFiles(configuration =>
@@ -43,6 +46,7 @@ namespace DashBoard
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors("ApiCorsPolicy");
             app.UseRouting();
             app.UseSpaStaticFiles();
             app.UseAuthorization();

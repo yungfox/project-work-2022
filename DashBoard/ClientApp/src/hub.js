@@ -1,12 +1,9 @@
-import { HubConnectionBuilder, HttpTransportType } from '@microsoft/signalr'
+import { HubConnectionBuilder } from '@microsoft/signalr'
 
 export default {
     initSignalR: async () => {
         let hub = new HubConnectionBuilder()
-                    .withUrl('/parkingHub', { 
-                        skipNegotiation: true,
-                        transport: HttpTransportType.WebSockets
-                    })
+                    .withUrl('/parkingHub')
                     .build()
         
         hub.on('ReceiveMessage', message => {

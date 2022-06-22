@@ -222,7 +222,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                             {
                                 Connection = con,
                                 CommandType = System.Data.CommandType.Text,
-                                CommandText = $"UPDATE tblPiazzole SET Timestamp=@time, Status=@status WHERE Id=@id"
+                                CommandText = $"UPDATE tblParkingSpot SET Timestamp=@time, Status=@status WHERE Id=@id"
                             })
                             {
                                 cmd.Parameters.AddWithValue("id", spot._id);
@@ -259,7 +259,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
             try
             {
                 Message message = new Message(Encoding.UTF8.GetBytes(payload));
-                await azureClient.SendAsync("Parking", message);
+                await azureClient.SendAsync("ParkingIoT", message);
             }
             catch (Exception ex)
             {

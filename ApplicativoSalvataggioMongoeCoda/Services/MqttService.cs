@@ -78,9 +78,18 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                     {
                         try
                         {
-                            ParkingSpotMessage message = JsonConvert.DeserializeObject<ParkingSpotMessage>(payload);
+                            dynamic json = JsonConvert.DeserializeObject(payload);
+                            ParkingSpotMessage message = new ParkingSpotMessage()
+                            {
+                                _id = json._id.ToString(),
+                                taken = Convert.ToBoolean(json.Status.ToString()),
+                                timestamp = now
+                            };
+
                             await db.UpdateParkingSpot(message._id, message.taken, message.timestamp);
-                            await queue.Send(payload, "ParkingSpots");
+
+                            string statusQueuePayload = JsonConvert.SerializeObject(message);
+                            await queue.Send(statusQueuePayload, "ParkingSpots");
                         }
                         catch (Exception ex)
                         {

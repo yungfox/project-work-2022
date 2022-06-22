@@ -40,6 +40,12 @@ export default {
     mounted() {
         axios.get('http://localhost:3000/testapi')
             .then((res) => console.log(res.data))
+        
+        const socket = new WebSocket('ws://localhost:3000')
+
+        socket.onmessage = ({ data }) => {
+            console.log(`new message: ${data}`)
+        }
     }
 }
 </script>

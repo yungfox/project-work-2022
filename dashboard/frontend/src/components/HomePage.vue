@@ -111,7 +111,7 @@
 import ApexCharts from 'apexcharts'
 
 export default {
-    name: 'Home',
+    name: 'HomePage',
     data() {
         return {
             first_floor: {

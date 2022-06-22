@@ -33,12 +33,13 @@
 </template>
 
 <script>
-import Hub from './hub'
+import axios from 'axios'
 
 export default {
     name: 'App',
     mounted() {
-        Hub.initSignalR()
+        axios.get('http://localhost:3000/testapi')
+            .then((res) => console.log(res.data))
     }
 }
 </script>

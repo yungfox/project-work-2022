@@ -370,7 +370,7 @@ namespace ApplicativoSalvataggioMongoeCoda
                 {
                     await CreateBilling();
                     var res = await azureFunctionService.GetUpdatedBillings();
-                    await UpdateBilling(res);
+                    await UpdateBilling();
                 }
             }
             catch (Exception ex)

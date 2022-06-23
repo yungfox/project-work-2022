@@ -19,7 +19,7 @@ namespace FunctionBillWeb
             try
             {
                 //calcolo il totale dei guadagni di 7 giorni fa
-                using (SqlConnection con = new SqlConnection("Server=tcp:brunale.database.windows.net,1433;Initial Catalog=dbParking;Persist Security Info=False;User ID=nicola;Password=passwordsicura!1;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"))
+                using (SqlConnection con = new SqlConnection("ConnectionSQL"))
                 using (SqlCommand cmd = new SqlCommand()
                 {
                     Connection = con,

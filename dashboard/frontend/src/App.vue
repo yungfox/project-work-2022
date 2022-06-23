@@ -2,7 +2,7 @@
     <div class="background">
         <div class="mask">
             <div class="row">
-                <div class="sidebar">
+                <!-- <div class="sidebar">
                     <div class="menu-items-section">
                         <router-link to="/" class="link-reset">
                             <div class="menu-item">
@@ -23,7 +23,7 @@
                             </div>
                         </router-link>
                     </div>
-                </div>
+                </div> -->
                 <div class="content">
                     <router-view />
                 </div>
@@ -33,19 +33,10 @@
 </template>
 
 <script>
-import axios from 'axios'
-
 export default {
     name: 'App',
     mounted() {
-        axios.get('http://localhost:3000/testapi')
-            .then((res) => console.log(res.data))
         
-        const socket = new WebSocket('ws://localhost:3000')
-
-        socket.onmessage = ({ data }) => {
-            console.log(`new message: ${data}`)
-        }
     }
 }
 </script>

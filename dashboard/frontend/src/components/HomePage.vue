@@ -1,39 +1,89 @@
 <template>
-    <div class="loading-parent" :style="loaded ? 'display: none' : 'display: flex'">
-        <div>loading...</div>
-    </div>
-    <div :style="loaded ? 'display: block' : 'display: none'">
-        <div class="row">
-            <div class="card">
-                <div class="row" style="padding: 2rem;">
-                    <div id="chart" class="chart"></div>
+    <div>
+        <div class="loading-parent" :style="loaded ? 'display: none' : 'display: flex'">
+            <div>loading...</div>
+        </div>
+        <div :style="loaded ? 'display: block' : 'display: none'">
+            <div class="row">
+                <div class="card" style="justify-content: space-between; align-items: center">
+                    <div class="col data-summary">
+                        <div class="row">
+                            <div class="col">
+                                <div class="row">
+                                    <span class="data-summary-key">posti occupati</span>
+                                </div>
+                                <div class="row">
+                                    <span class="data-summary-value" style="color: var(--orange)">{{taken_spots}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="row">
+                                    <span class="data-summary-key">posti liberi</span>
+                                </div>
+                                <div class="row">
+                                    <span class="data-summary-value" style="color: var(--green)">{{free_spots}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="col data-summary">
+                        <div class="row">
+                            <div class="col">
+                                <div class="row">
+                                    <span class="data-summary-key">percentuale di occupazione</span>
+                                </div>
+                                <div class="row">
+                                    <span class="data-summary-value">{{free_spots_percentage}}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="row">
+                                    <span class="data-summary-key">tariffa attuale</span>
+                                </div>
+                                <div class="row">
+                                    <span class="data-summary-value">{{current_rate}}€</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="row" style="padding: 2rem;">
+                        <div id="chart" class="chart"></div>
+                    </div>
+                </div>
+                <div class="card">
+
                 </div>
             </div>
-            <div class="card"></div>
-            <div class="card"></div>
-        </div>
-        <div class="row">
-            <div class="card">
-                <div class="occupance-graphs-section">
-                    <div class="occupance-graph">
-                        <template v-for="spot in first_floor">
-                            <template v-if="spot == 1">
-                                <div class="square taken" :key="spot"></div>
+            <div class="row">
+                <div class="card">
+                    <div class="occupance-graphs-section">
+                        <div class="occupance-graph">
+                            <template v-for="spot in first_floor">
+                                <template v-if="spot.Status">
+                                    <div class="square taken" :key="spot.Id"></div>
+                                </template>
+                                <template v-if="!spot.Status">
+                                    <div class="square" :key="spot.Id"></div>
+                                </template>
                             </template>
-                            <template v-if="spot == 0">
-                                <div class="square free" :key="spot"></div>
+                        </div>
+                        <div class="occupance-graph">
+                            <template v-for="spot in second_floor">
+                                <template v-if="spot.Status">
+                                    <div class="square taken" :key="spot.Id"></div>
+                                </template>
+                                <template v-if="!spot.Status">
+                                    <div class="square" :key="spot.Id"></div>
+                                </template>
                             </template>
-                        </template>
-                    </div>
-                    <div class="occupance-graph">
-                        <template v-for="spot in second_floor">
-                            <template v-if="spot == 1">
-                                <div class="square taken" :key="spot"></div>
-                            </template>
-                            <template v-if="spot == 0">
-                                <div class="square free" :key="spot"></div>
-                            </template>
-                        </template>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -44,6 +94,32 @@
 <style scoped>
     .row {
         flex-wrap: wrap;
+    }
+
+    .col {
+        display: flex;
+        flex-direction: column;
+        flex: 1
+    }
+
+    .data-summary {
+        padding: 2rem;
+        justify-content: space-evenly;
+        height: 100%
+    }
+
+    .data-summary-key {
+        font-size: 1.1rem
+    }
+
+    .data-summary-value {
+        font-size: 3rem
+    }
+
+    .divider {
+        height: 70%;
+        width: 1px;
+        background-color: rgba(255,255,255,0.7);
     }
 
     .occupance-graphs-section {
@@ -69,22 +145,19 @@
         width: 36px;
         height: 36px;
         margin: 4px;
+        background-color: var(--green);
+    }
+
+    .square:hover {
+        background-color: var(--green-hover);
     }
 
     .taken {
-        background-color: #F7AA00
+        background-color: var(--orange);
     }
 
     .taken:hover {
-        background-color: #f79400
-    }
-
-    .free {
-        background-color: #00F790
-    }
-
-    .free:hover {
-        background-color: #00ac4d
+        background-color: var(--orange-hover)
     }
 
     .loading-parent {
@@ -109,165 +182,132 @@
 
 <script>
 import ApexCharts from 'apexcharts'
+import axios from 'axios'
 
 export default {
     name: 'HomePage',
     data() {
         return {
-            first_floor: {
-                "001": 0,
-                "002": 1,
-                "003": 0,
-                "004": 1,
-                "005": 0,
-                "006": 0,
-                "007": 1,
-                "008": 0,
-                "009": 1,
-                "010": 1,
-                "011": 0,
-                "012": 0,
-                "013": 0,
-                "014": 0,
-                "015": 1,
-                "016": 1,
-                "017": 0,
-                "018": 0,
-                "019": 1,
-                "020": 0,
-                "021": 0,
-                "022": 1,
-                "023": 1,
-                "024": 0,
-                "025": 1,
-                "026": 0,
-                "027": 0,
-                "028": 0,
-                "029": 1,
-                "030": 0,
-                "031": 1,
-                "032": 1,
-                "033": 1,
-                "034": 1,
-                "035": 1,
-                "036": 1,
-                "037": 0,
-                "038": 1,
-                "039": 1,
-                "040": 1,
-                "041": 1,
-                "042": 0,
-                "043": 1,
-                "044": 1,
-                "045": 0,
-                "046": 0,
-                "047": 1,
-                "048": 0,
-                "049": 1,
-                "050": 0,
-            },
-            second_floor: {
-                "101": 0,
-                "102": 1,
-                "103": 0,
-                "104": 0,
-                "105": 0,
-                "106": 0,
-                "107": 0,
-                "108": 1,
-                "109": 1,
-                "110": 1,
-                "111": 0,
-                "112": 1,
-                "113": 1,
-                "114": 1,
-                "115": 0,
-                "116": 0,
-                "117": 0,
-                "118": 0,
-                "119": 0,
-                "120": 1,
-                "121": 0,
-                "122": 0,
-                "123": 1,
-                "124": 1,
-                "125": 0,
-                "126": 0,
-                "127": 0,
-                "128": 1,
-                "129": 1,
-                "130": 0,
-                "131": 0,
-                "132": 0,
-                "133": 0,
-                "134": 0,
-                "135": 1,
-                "136": 1,
-                "137": 0,
-                "138": 0,
-                "139": 0,
-                "140": 0,
-                "141": 0,
-                "142": 0,
-                "143": 1,
-                "144": 1,
-                "145": 0,
-                "146": 0,
-                "147": 1,
-                "148": 0,
-                "149": 1,
-                "150": 1,
-            },
-            loaded: false
+            total_spots: 100,
+            first_floor: null,
+            second_floor: null,
+            loaded: false,
+            free_spots: null,
+            taken_spots: null,
+            avg_parking_time: null,
+            free_spots_percentage: null,
+            graph_data: null,
+            current_rate: null,
+            chartTextColor: '#b9b9b9',
+            chartFontFamily: 'Inter',
         }
     },
     mounted() {
-        let chartTextColor = '#b9b9b9'
-        let optionsLine = {
-            chart: {
-                height: "100%",
-                width: "100%",
-                foreColor: chartTextColor,
-                toolbar: { show: false },
-                type: 'line',
-                zoom: { enabled: false },
-                dropShadow: { enabled: false }
-            },
-            tooltip: { theme: "dark", style: { fontFamily: 'Inter' } },
-            stroke: { curve: 'smooth', width: 2 },
-            colors: ["#00F790", '#F7AA00'],
-            series: [
-                { name: "Produced", data: [2, 5, 7, 4, 2, 7] },
-                { name: "Discarded", data: [5, 8, 9, 4, 9, 3] }
-            ],
-            markers: { size: 0, strokeWidth: 0, },
-            grid: { borderColor: '#3d3d3d' },
-            labels: [1, 2, 3, 4, 5, 6],
-            xaxis: { 
-                tooltip: { enabled: false },
-                labels: { style: { colors: chartTextColor, fontFamily: 'Inter' } }
-            },
-            yaxis: {
-                forceNiceScale: true,
-                labels: { style: { colors: [chartTextColor], fontFamily: 'Inter' } }
-            },
-            legend: { position: 'bottom', horizontalAlign: 'center', fontFamily: 'Inter' },
-            responsive: [
-                {
-                    breakpoint: 1000,
-                    options: {
-                    }
-                }
-            ]
-        }
+        // const socket = new WebSocket('ws://localhost:3000')
 
-        let chartLine = new ApexCharts(document.querySelector('#chart'), optionsLine);
-        chartLine.render();
-        
-        this.loaded = true
-        /* setTimeout(() => {
-            this.loaded = true
-        }, 1000) */
+        // socket.onmessage = ({ data }) => {
+        //     console.log(`new message: ${data}`)
+        // }
+
+        axios.get('http://localhost:3000/sqltest')
+        .then((res) => {
+            let data = res.data
+
+            this.first_floor = data[0]
+            this.second_floor = data[1]
+            this.avg_parking_time = data[2][0].AvgParkingTime
+            this.taken_spots = data[3][0].FreeSpotsCount
+            this.free_spots = this.total_spots - this.taken_spots
+            this.free_spots_percentage = (100 / this.total_spots) * this.taken_spots
+            this.graph_data = data[4]
+            this.current_rate = data[5][0].CurrentRate
+
+            let dates = []
+            let avgTimes = []
+            let totalDailyEntries = []
+
+            this.graph_data.forEach(el => {
+                dates.push(el.Date)
+                avgTimes.push(el.AvgParkingTime)
+                totalDailyEntries.push(el.TotalEntries)
+            })
+
+            let optionsLine = {
+                chart: {
+                    type: 'line',
+                    height: '100%',
+                    width: '100%',
+                    foreColor: this.chartTextColor,
+                    toolbar: { show: false },
+                    zoom: { enabled: false },
+                    dropShadow: { enabled: false }
+                },
+                tooltip: { theme: "dark", style: { fontFamily: this.chartFontFamily } },
+                stroke: { curve: 'smooth', width: 2 },
+                colors: ["#00F790", '#F7AA00'],
+                series: [
+                    { name: "permanenza media", data: avgTimes },
+                    { name: "ingressi totali", data: totalDailyEntries }
+                ],
+                markers: { size: 0, strokeWidth: 0, },
+                grid: { borderColor: '#3d3d3d' },
+                xaxis: {
+                    categories: dates,
+                    type: 'datetime',
+                    tooltip: { enabled: false },
+                    labels: {
+                        style: { 
+                            colors: this.chartTextColor, 
+                            fontFamily: this.chartFontFamily 
+                        },
+                        datetimeUTC: true,
+                        format: 'dd/MM/yyyy'
+                    },
+                },
+                yaxis: [
+                    {
+                        forceNiceScale: false,
+                        axisTicks: { show: true },
+                        axisBorder: {
+                            show: true,
+                            color: "#FF1654"
+                        },
+                        labels: { style: { colors: "#FF1654" } },
+                        title: {
+                            text: "permanenza media",
+                            style: { color: "#FF1654" }
+                        }
+                    },
+                    {
+                        forceNiceScale: false,
+                        opposite: true,
+                        axisTicks: { show: true },
+                        axisBorder: {
+                            show: true,
+                            color: "#247BA0"
+                        },
+                        labels: { style: { colors: "#247BA0" } },
+                        title: {
+                            text: "ingressi totali",
+                            style: { color: "#247BA0" }
+                        }
+                    }
+                ],
+                legend: { position: 'bottom', horizontalAlign: 'center', fontFamily: this.chartFontFamily },
+                responsive: [
+                    {
+                        breakpoint: 1000,
+                        options: {
+                        }
+                    }
+                ]
+            }
+
+            let chartLine = new ApexCharts(document.querySelector('#chart'), optionsLine);
+            chartLine.render();
+
+            this.loaded = true 
+        })
     }
 }
 </script>

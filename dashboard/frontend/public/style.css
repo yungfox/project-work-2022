@@ -1,3 +1,10 @@
+:root {
+    --orange: #F7AA00;
+    --orange-hover: #f79400;
+    --green: #00F790;
+    --green-hover: #00ac4d;
+}
+
 body {
     width: 100%;
     font-family: 'Inter', sans-serif;

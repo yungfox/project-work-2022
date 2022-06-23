@@ -134,7 +134,7 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
 
                                 Send(entryResponseJson, "entry/gatewaytodevice");
 
-                                if (entryResult)
+                                if (entryResult.Status)
                                 {
                                     try
                                     {

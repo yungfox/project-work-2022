@@ -7,7 +7,7 @@
 #include <time.h>
 #include <ArduinoJson.h>
 
-#define debug
+//#define debug
 /* #endregion */
 /* #region  Definizione Pin */
 //#define debug
@@ -37,10 +37,12 @@ const int PUBLISH_INTERVAL = 5000;
 MFRC522 mfrc522(pinSs, pinRst);
 WiFiClient espClient;
 PubSubClient client(espClient);
+bool bloccainvio=false;
 /* #endregion */
 /* #region  */
 void reconnect()
 {
+  Serial.println("Riconnessione All'mqtt");
   // creazione stringa che definisce l'indirizzo del client, alla vista del broker, come esp32-client-(MACaddress),
   // in modo da constatare che non ci siano client con lo stesso nome tra quelli visibili al broker
   String client_id = "esp32-client-";
@@ -54,7 +56,9 @@ void reconnect()
   if (client.connect(client_id.c_str()))
   {
     // nel caso la funzione abbia successo , stampo un messaggio in console che riporta il successo della connessione al broker
+    #ifdef debug
     Serial.println("Public emqx mqtt broker connected");
+    #endif
   }
   else
   {
@@ -67,6 +71,8 @@ void reconnect()
     delay(2000);
   }
    client.subscribe(TOPIC_RECIEVE);
+   bloccainvio=false;
+  
 }
 /* #endregion */
 
@@ -100,23 +106,27 @@ void callback(char *topic, byte *payload, unsigned int length)
 
   int stato = doc["stato"]; // "F4 AA B2 89"
   // const char *Dispositivo = doc["Dispositivo"]; // "ESP32Uscita"
+  digitalWrite(ledpinblu, LOW);
   if (stato == 1)
   {
     digitalWrite(ledpinverde, HIGH);
     digitalWrite(ledpinrosso, LOW);
-    delay(1000);
+    delay(2000);
     digitalWrite(ledpinverde, LOW);
-    
   }
   else
   {
     digitalWrite(ledpinrosso, HIGH);
     digitalWrite(ledpinverde, LOW);
-    delay(1000);
+    delay(2000);
     digitalWrite(ledpinrosso, LOW);
-
+    
   }
-  digitalWrite(ledpinblu, LOW);
+ 
+  bloccainvio=false;
+  if(!client.connected()){
+    reconnect();
+  }
 #ifdef debug
   Serial.println(stato);
   Serial.println("-----------------------");
@@ -133,7 +143,7 @@ void InviaDati(char *datiEntrata)
     digitalWrite(ledpinverde, LOW);
     digitalWrite(ledpinblu, HIGH);
     char clientid[15];
-    String sbarra = "ESP32Uscita";
+    String sbarra = "TotemPagamento";
     sbarra.toCharArray(clientid, 15);
     // Serial.println(clientid);
 
@@ -151,7 +161,11 @@ void InviaDati(char *datiEntrata)
     Serial.print(js);
 #endif
   }
-  delay(PUBLISH_INTERVAL);
+  else{
+    reconnect();
+  }
+   
+  //delay(PUBLISH_INTERVAL);
   client.subscribe(TOPIC_RECIEVE);
 }
 /* #endregion */
@@ -179,7 +193,12 @@ void LetturaRFID()
   IdBiglietto.toUpperCase();
   char charbuffer[30];
   IdBiglietto.toCharArray(charbuffer, 30, 1);
-  InviaDati(charbuffer);
+  if(!bloccainvio)
+  {
+    InviaDati(charbuffer);
+    bloccainvio=true;
+  }
+  
 }
 
 /* #endregion */
@@ -218,6 +237,7 @@ void setup()
   while (!client.connected())
   {
     reconnect();
+    
   }
 }
 /* #endregion */
@@ -225,7 +245,10 @@ void setup()
 void loop()
 {
   //richiamo la funzione di lettura 
+  
   LetturaRFID();
+  
+ 
   //verifico che il client 
   client.loop();
 }

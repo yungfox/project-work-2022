@@ -118,7 +118,12 @@ void callback(char *topic, byte *payload, unsigned int length)
   if (stato == 1)
   {
     digitalWrite(ledpinverde, HIGH);
-    digitalWrite(ledpinrosso, LOW);
+    digitalWrite(ledpinrosso, LOW);  
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Grazie e");
+    lcd.setCursor(0, 1);
+    lcd.print("Benvenuti");
     delay(5000);
     digitalWrite(ledpinverde, LOW);
   }
@@ -265,6 +270,7 @@ void setup()
 /* #region  Loop */
 void loop()
 {
+  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("POSTI DISP.");
   lcd.setCursor(0, 1);

@@ -3,9 +3,7 @@ const sql = require('mssql')
 const router = express.Router()
 const sqlConfig = require('./sqlserver')
 
-router.get('/testapi', ({ res }) => res.send('yep'))
-
-router.get('/sqltest', (req, res) => {
+router.get('/getData', (req, res) => {
     sql.connect(sqlConfig, err => {
         try {
             let request = new sql.Request()

@@ -15,24 +15,24 @@ const client = device.fromConnectionString(connectionString, protocol)
 const wss = new websocket.Server({ noServer: true })
 
 wss.on('connection', async socket => {
-    socket.send('connected to server')
     console.log('client connected')
     
-    client.open()
-    .then(() => {
-        console.log('connected to iothub!')
-        client.on('message', message => {
-            let body = message.getBytes().toString('ascii')
-            
-            console.log(`new message: ${body}`)
-
-            socket.send(body)
-            client.complete(message)
+    try {
+        client.open()
+        .then(() => {
+            console.log('connected to iothub!')
+            client.on('message', message => {
+                let body = message.getBytes().toString('ascii')
+                
+                console.log(`new message: ${body}`)
+    
+                socket.send(body)
+                client.complete(message)
+            })
         })
-    })
-    .catch(err => {
-        console.log(`could not connect to iothub :(\n${err}`)
-    })
+    } catch(err) {
+        console.log(err)
+    }
 })
 
 app.use(cors())

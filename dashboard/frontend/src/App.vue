@@ -1,31 +1,9 @@
 <template>
     <div class="background">
         <div class="mask">
-            <div class="row">
-                <!-- <div class="sidebar">
-                    <div class="menu-items-section">
-                        <router-link to="/" class="link-reset">
-                            <div class="menu-item">
-                                <div class="menu-item-icon"></div>
-                                <span class="menu-item-title">overview</span>
-                            </div>
-                        </router-link>
-                        <router-link to="/details" class="link-reset">
-                            <div class="menu-item">
-                                <div class="menu-item-icon"></div>
-                                <span class="menu-item-title">details</span>
-                            </div>
-                        </router-link>
-                        <router-link to="/settings" class="link-reset">
-                            <div class="menu-item">
-                                <div class="menu-item-icon"></div>
-                                <span class="menu-item-title">settings</span>
-                            </div>
-                        </router-link>
-                    </div>
-                </div> -->
+            <div class="row" style="justify-content: center">
                 <div class="content">
-                    <router-view />
+                    <home-page></home-page>
                 </div>
             </div>
         </div>
@@ -33,10 +11,10 @@
 </template>
 
 <script>
+import HomePage from './components/HomePage'
 export default {
-    name: 'App',
-    mounted() {
-        
-    }
+    components: {
+        HomePage
+    },
 }
 </script>

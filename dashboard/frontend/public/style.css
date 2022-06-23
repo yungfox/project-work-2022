@@ -24,6 +24,7 @@ body {
     flex-wrap: wrap;
     mix-blend-mode: hard-light;
     background-color: #191941;
+    min-height: 100vh;
 }
 
 .row {
@@ -44,13 +45,14 @@ body {
     flex-direction: column;
     flex-grow: 1;
     padding: 1rem;
+    max-width: 1600px;
 }
 
 .card {
     display: flex;
     margin: 1rem;
     min-height: 360px;
-    min-width: 500px;
+    min-width: 350px;
     flex: 1;
     border-radius: 12px;
     background-color: grey;

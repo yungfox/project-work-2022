@@ -9,7 +9,7 @@ router.get('/sqltest', (req, res) => {
     sql.connect(sqlConfig, err => {
         try {
             let request = new sql.Request()
-            request.query('SELECT Id, Status FROM tblParkingSpot WHERE IdFloor = 0;SELECT Id, Status FROM tblParkingSpot WHERE IdFloor = 1;SELECT AVG(DATEDIFF(MINUTE,EntryTime,ExitTime)) AS AVGtimestop FROM tblTicket;SELECT COUNT(Id) AS CountFreeSpot FROM tblParkingSpot WHERE Status = 1;SELECT datepart(day, EntryTime)AS day,datepart(MONTH, EntryTime)AS month,datepart(YEAR, EntryTime)AS year, COUNT(IdTicket) AS Count FROM tblTicket WHERE EntryTime > (GetDate()-7) GROUP BY datepart(day, EntryTime),datepart(MONTH, EntryTime),datepart(YEAR, EntryTime)', (err, recordset) => {
+            request.query("SELECT Id, Status FROM tblParkingSpot WHERE IdFloor = 0;SELECT Id, Status FROM tblParkingSpot WHERE IdFloor = 1;SELECT AVG(DATEDIFF(MINUTE,EntryTime,ExitTime)) AS AVGtimestop FROM tblTicket;SELECT COUNT(Id) AS CountFreeSpot FROM tblParkingSpot WHERE Status = 1;SELECT CONCAT(datepart(year, EntryTime),'-',datepart(MONTH, EntryTime),'-',datepart(day, EntryTime)) AS Day, AVG(DATEDIFF(MINUTE,EntryTime,ExitTime)) AS AVG,COUNT(IdTicket) AS Count FROM tblTicket WHERE EntryTime > (dateadd(day,-7,CONVERT(varchar(10),GETDATE(),111))) GROUP BY datepart(day, EntryTime),datepart(MONTH, EntryTime),datepart(YEAR, EntryTime);", (err, recordset) => {
                 res.end(JSON.stringify(recordset.recordsets))
             })
             request.query()

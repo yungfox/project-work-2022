@@ -103,12 +103,12 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                         switch (message.Dispositivo)
                         {
                             case "ESP32Uscita":
-                                dynamic exitResult = await db.Exit(message._id, now);
-                                string exitResponseJson = $"{{\"stato\":{Convert.ToInt32(exitResult.Status)},\"spot\":{Convert.ToInt32(exitResult.Spot)}}}";
+                                bool exitResult = await db.Exit(message._id, now);
+                                string exitResponseJson = $"{{\"stato\":{Convert.ToInt32(exitResult)}}}";
 
                                 Send(exitResponseJson, "exit/gatewaytodevice");
 
-                                if (exitResult.Status)
+                                if (exitResult)
                                 {
                                     try
                                     {
@@ -129,8 +129,8 @@ namespace ApplicativoSalvataggioMongoeCoda.Services
                                 break;
 
                             case "ESP32Entrata":
-                                bool entryResult = await db.Entry(message._id, now);
-                                string entryResponseJson = $"{{\"stato\":{Convert.ToInt32(entryResult)}}}";
+                                dynamic entryResult = await db.Entry(message._id, now);
+                                string entryResponseJson = $"{{\"stato\":{Convert.ToInt32(entryResult.Status)},\"spot\":{Convert.ToInt32(entryResult.Spot)}}}";
 
                                 Send(entryResponseJson, "entry/gatewaytodevice");
 

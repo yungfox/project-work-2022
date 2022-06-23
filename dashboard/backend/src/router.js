@@ -19,7 +19,14 @@ router.get('/sqltest', (req, res) => {
                             "COUNT(IdTicket) AS TotalEntries "+
                         "FROM tblTicket WHERE EntryTime > (dateadd(day,-7,CONVERT(varchar(10),GETDATE(),111))) "+
                         "GROUP BY datepart(day, EntryTime),datepart(MONTH, EntryTime),datepart(YEAR, EntryTime);"+
-                        "SELECT onehour AS CurrentRate FROM tblBilling WHERE day = DATENAME(WEEKDAY, GETDATE())", (err, recordset) => {
+                        "SELECT onehour AS CurrentRate FROM tblBilling WHERE day = DATENAME(WEEKDAY, GETDATE());"+
+                        "SELECT "+ 
+                            "CONVERT(DATE, CONCAT(datepart(year, EntryTime),'-',datepart(MONTH, EntryTime),'-',datepart(day, EntryTime))) AS Date,"+ 
+                            "AVG(DATEDIFF(MINUTE,EntryTime,ExitTime)) AS AvgParkingTime,"+
+                            "COUNT(IdTicket) AS TotalEntries "+ 
+                        "FROM tblTicket "+ 
+                        "WHERE EntryTime BETWEEN (dateadd(day,-14,CONVERT(varchar(10),GETDATE(),111))) AND (dateadd(day,-7,CONVERT(varchar(10),GETDATE(),111))) "+
+                        "GROUP BY datepart(day, EntryTime),datepart(MONTH, EntryTime),datepart(YEAR, EntryTime);", (err, recordset) => {
                 res.end(JSON.stringify(recordset.recordsets))
             })
             request.query()

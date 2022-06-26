@@ -3,7 +3,7 @@ const username = process.env.USERNAMESQL;
 const password = process.env.PASSWORDSQL;
 const SQLserver = process.env.YOUR_SERVER;
 
-const config = {  
+const config = {
     "server": SQLserver,
     "user": username,
     "password": password,
@@ -11,8 +11,3 @@ const config = {
 };
 
 module.exports = config
-
-// logica di interrogazione del server...
-
-// https://docs.microsoft.com/en-us/sql/connect/node-js/step-3-proof-of-concept-connecting-to-sql-using-node-js?view=sql-server-ver16
-// https://github.com/tediousjs/tedious/tree/master/examples

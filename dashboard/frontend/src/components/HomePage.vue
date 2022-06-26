@@ -1,10 +1,13 @@
 <template>
     <div class="loading-parent">
+        <!-- messaggio da mostrare durante il caricamento -->
         <div class="loading-parent" :style="loaded ? 'display: none' : 'display: flex'">
             <div style="font-size: 1.5rem">loading...</div>
         </div>
+        <!-- contenuto principale -->
         <div :style="loaded ? 'display: block' : 'display: none'">
             <div class="row">
+                <!-- card dei dati istantanei -->
                 <div class="card" style="justify-content: space-between; align-items: center">
                     <div class="col data-summary">
                         <div class="row">
@@ -52,12 +55,14 @@
                         </div>
                     </div>
                 </div>
+                <!-- card del grafico della permanenza media -->
                 <div class="card">
                     <div class="row chart-parent">
                         <span>permanenza media</span>
                         <div id="avg_time_chart" class="chart"></div>
                     </div>
                 </div>
+                <!-- card del grafico degli ingressi totali -->
                 <div class="card">
                     <div class="row chart-parent">
                         <span>ingressi totali</span>
@@ -66,15 +71,18 @@
                 </div>
             </div>
             <div class="row">
+                <!-- card del visualizzatore dell'occupazione attuale del parcheggio -->
                 <div class="card" style="flex-direction: column; justify-content: center;">
                     <div class="row">
                         <div style="margin: 2rem 0 0 6rem">occupazione attuale</div>
                     </div>
                     <div class="row">
                         <div class="occupance-graphs-section">
+                            <!-- piano terra -->
                             <div class="occupance-graph">
                                 <span class="floor-label">piano 0</span>
                                 <div class="spots">
+                                    <!-- disegno i quadrati ognuno rappresentante una piazzola del piano -->
                                     <template v-for="spot in first_floor">
                                         <template v-if="spot.Status">
                                             <div class="square taken" :key="spot.Id" @mouseover="showTip(spot.Id)" @mouseleave="hideTip(spot.Id)" :id="spot.Id">
@@ -89,9 +97,11 @@
                                     </template>
                                 </div>
                             </div>
+                            <!-- primo piano -->
                             <div class="occupance-graph">
                                 <span class="floor-label">piano 1</span>
                                 <div class="spots">
+                                    <!-- disegno i quadrati ognuno rappresentante una piazzola del piano -->
                                     <template v-for="spot in second_floor">
                                         <template v-if="spot.Status">
                                             <div class="square taken" :key="spot.Id" @mouseover="showTip(spot.Id)" @mouseleave="hideTip(spot.Id)" :id="spot.Id">
@@ -246,6 +256,7 @@
 </style>
 
 <script>
+// importo apexcharts per i grafici e axios per la chiamata ajax all'api per popolare i dati
 import ApexCharts from 'apexcharts'
 import axios from 'axios'
 
@@ -269,24 +280,34 @@ export default {
         }
     },
     mounted() {
+        // mi connetto al websocket aperto dal backend
         const socket = new WebSocket('ws://localhost:3000')
 
         socket.onmessage = ({ data }) => {
             try {
+                // eseguo il parse del json in entrata
                 let message = JSON.parse(data)
 
+                // continuo solo se il messaggio è relativo al cambiamento di stato di una delle piazzole.
+                // per determinare ciò verifico che il json abbia la proprietà "taken"
                 if(Object.hasOwn(message, 'taken')) {
+                    // se la piazzola è del piano terra
                     if(parseInt(message._id) < 60) {
+                        // aggiorno lo stato della piazzola corrispondente
                         let updateIndex = this.first_floor.findIndex(s => {
                             return s.Id === message._id
                         })
                         this.first_floor[updateIndex].Status = message.taken
-                    } else {
+                    } 
+                    // se la piazzola è del primo piano
+                    else {
+                        // aggiorno lo stato della piazzola corrispondente
                         let idx = this.second_floor.findIndex(s => {
                             return s.Id === message._id
                         })
                         this.second_floor[idx].Status = message.taken
                     }
+                    // aggiorno il conteggio dei posti liberi/occupati
                     this.updateCounts()
                 }
             } catch(err) {
@@ -294,10 +315,12 @@ export default {
             }
         }
 
+        // chiamo l'api del backend al load per popolare i dati
         axios.get('http://localhost:3000/getData')
         .then((res) => {
             let data = res.data
 
+            // assegno i dati nella risposta alle rispettive variabili
             this.first_floor = data[0]
             this.second_floor = data[1]
             this.avg_parking_time = data[2][0].AvgParkingTime
@@ -308,10 +331,13 @@ export default {
             this.current_rate = data[5][0].CurrentRate
             this.two_weeks_ago_graph_data = data[6]
 
+            // istanzio tre array vuoti con al loro interno due array vuoti.
+            // questo serve per formattare i dati per il grafico in maniera appropriata
             let dates = [[],[]]
             let avgTime = [[],[]]
             let totalEntries = [[],[]]
 
+            // popolo gli array creati
             this.one_week_ago_graph_data.forEach(el => {
                 dates[0].push(el.Date)
                 avgTime[0].push(el.AvgParkingTime)
@@ -324,6 +350,7 @@ export default {
                 totalEntries[1].push(el.TotalEntries)
             })
 
+            // opzioni del grafico della permanenza media
             let avgTimeChartOptions = {
                 chart: {
                     type: 'line',
@@ -386,8 +413,7 @@ export default {
                 ]
             }
 
-            let avgTimeChart = new ApexCharts(document.querySelector('#avg_time_chart'), avgTimeChartOptions);
-
+            // opzioni del grafico degli ingressi totali
             let totalEntriesChartOptions = {
                 chart: {
                     type: 'line',
@@ -450,21 +476,26 @@ export default {
                 ]
             }
 
+            // istanzio e renderizzo i grafici
+            let avgTimeChart = new ApexCharts(document.querySelector('#avg_time_chart'), avgTimeChartOptions);
             let totalEntriesChart = new ApexCharts(document.querySelector('#total_entries_chart'), totalEntriesChartOptions);
-
             avgTimeChart.render();
             totalEntriesChart.render()
 
+            // nascondo il messaggio di caricamento e mostro il contenuto della pagina
             this.loaded = true 
         })
     },
     methods: {
+        // metodo per mostrare il tooltip del numero della piazzola all'hover
         showTip: (id) => {
             document.getElementById(`tip_${id}`).style.display = 'flex'
         },
+        // metodo per nascondere il tooltip del numero della piazzola alla fine dell'hover
         hideTip: (id) => {
             document.getElementById(`tip_${id}`).style.display = 'none'
         },
+        // eseguo il conto delle piazzole occupate
         countTakenSpots() {
             let count = 0
             this.first_floor.forEach(spot => {
@@ -478,6 +509,7 @@ export default {
 
             return count
         }, 
+        // aggiorno il conto delle piazzole occupate
         updateCounts() {
             this.taken_spots = this.countTakenSpots()
             this.free_spots = this.total_spots - this.taken_spots
@@ -486,4 +518,3 @@ export default {
     }
 }
 </script>
-
